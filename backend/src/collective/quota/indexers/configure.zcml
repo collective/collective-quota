@@ -2,6 +2,11 @@
 
   <!-- Indexers/Metadata -->
 
+  <adapter
+      factory=".blob_size.blob_size"
+      name="blob_size"
+      />
+
   <!-- -*- extra stuff goes here -*- -->
 
 </configure>

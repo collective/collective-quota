@@ -8,6 +8,7 @@ from plone.dexterity.fti import DexterityFTI
 from plone.namedfile.field import NamedBlobFile
 from plone.namedfile.field import NamedBlobImage
 from plone.supermodel import model
+from plone.testing import zope as zope_testing
 from plone.testing.zope import WSGI_SERVER_FIXTURE
 from zope import schema
 
@@ -39,6 +40,11 @@ class Layer(PloneSandboxLayer):
         self.loadZCML(package=plone.exportimport)
         self.loadZCML(package=plone.restapi)
         self.loadZCML(package=collective.quota)
+        # Runs collective.quota.initialize (registers the BlobSizeIndex class).
+        zope_testing.installProduct(app, "collective.quota")
+
+    def tearDownZope(self, app):
+        zope_testing.uninstallProduct(app, "collective.quota")
 
     def setUpPloneSite(self, portal):
         applyProfile(portal, "collective.quota:default")

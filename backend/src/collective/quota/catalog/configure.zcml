@@ -4,6 +4,9 @@
     i18n_domain="collective.quota"
     >
 
+  <!-- BlobSizeIndex is registered as a Zope product class by
+       collective.quota.initialize (five:registerPackage in configure.zcml). -->
+
   <!-- -*- extra stuff goes here -*- -->
 
 </configure>

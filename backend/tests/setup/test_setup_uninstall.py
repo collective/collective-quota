@@ -18,3 +18,8 @@ class TestSetupUninstall:
         from collective.quota import interfaces
 
         assert getattr(interfaces, name) not in browser_layers
+
+    def test_blob_size_index_and_column_removed(self, portal):
+        catalog = portal.portal_catalog
+        assert "blob_size" not in catalog.indexes()
+        assert "blob_size" not in catalog.schema()

@@ -15,3 +15,11 @@ class HiddenProfiles:
         return [
             "collective.quota.upgrades",
         ]
+
+
+def post_install(context):
+    """Populate the blob_size index, its metadata column and the total."""
+    from collective.quota.usage import rebuild_usage
+    from plone import api
+
+    rebuild_usage(api.portal.get(), update_metadata=True)

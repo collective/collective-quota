@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <object name="portal_catalog">
-  <!-- Index
-  <index meta_type="FieldIndex"
-         name="industry"
+  <index meta_type="BlobSizeIndex"
+         name="blob_size"
   >
-    <indexed_attr value="industry" />
+    <indexed_attr value="blob_size" />
   </index>
--->
-  <!-- Metadata
-  <column value="industry" />
--->
+  <column value="blob_size" />
 </object>

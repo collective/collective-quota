@@ -311,7 +311,7 @@ register anything, so the common case costs nothing.
 if ledger.suspended: return
 settings = get_settings()
 if settings.hard_bytes <= 0: return
-index = get_index(portal); total = index.total()           # already includes this transaction
+total = get_total_usage(portal)       # flushes the indexing queue; includes this transaction
 net_delta = total - ledger.start_total                     # 0 when only moves/renames happened
 if net_delta > 0 and total > settings.hard_bytes and settings.policy != ALLOW:
     if net_delta > ledger.approved_bytes:

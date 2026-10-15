@@ -5,6 +5,14 @@
     i18n_domain="collective.quota"
     >
 
+  <browser:page
+      name="quota-rebuild"
+      for="plone.base.interfaces.IPloneSiteRoot"
+      class=".rebuild.QuotaRebuildView"
+      permission="collective.quota.ManageSettings"
+      layer="collective.quota.interfaces.IBrowserLayer"
+      />
+
   <!-- -*- extra stuff goes here -*- -->
 
 </configure>

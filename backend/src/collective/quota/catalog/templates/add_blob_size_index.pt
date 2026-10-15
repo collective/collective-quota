@@ -1,0 +1,36 @@
+<h1 tal:replace="structure context/manage_page_header">Header</h1>
+
+<main class="container-fluid">
+  <p class="form-help">
+    A
+    <em>BlobSizeIndex</em>
+     stores the size in bytes of the files and images of
+    each item and keeps the site-wide total.
+  </p>
+  <form action="manage_addBlobSizeIndex"
+        method="post"
+  >
+    <div class="form-group row">
+      <label class="col-sm-3 col-md-2 form-label"
+             for="id"
+      >Id</label>
+      <div class="col-sm-9 col-md-10">
+        <input class="form-control"
+               id="id"
+               name="id"
+               type="text"
+               value="blob_size"
+        />
+      </div>
+    </div>
+    <div class="zmi-controls">
+      <input class="btn btn-primary"
+             name="submit"
+             type="submit"
+             value="Add"
+      />
+    </div>
+  </form>
+</main>
+
+<h1 tal:replace="structure context/manage_page_footer">Footer</h1>

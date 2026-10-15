@@ -1,6 +1,6 @@
 # Phase 2 — `blob_size` indexer, `BlobSizeIndex` with running total, install-time population
 
-Status: Not started
+Status: Done
 Depends on: Phase 1
 Last updated: 2026-10-15
 
@@ -15,7 +15,7 @@ a site with existing content populates everything; the ZMI catalog tools keep it
 
 In: indexer + helpers, custom index class and Zope product registration, `catalog.xml`,
 `post_install` population, `usage.py` read API, `@@quota-rebuild` view, `zconsole`
-script, tests.
+script, `guard.py` and `settings.py` stubs, tests.
 
 Out: settings (phase 3), enforcement (phase 4), listing UI (phase 5).
 
@@ -107,20 +107,27 @@ class BlobSizeIndex(FieldIndex):
 
     def _stored(self, documentId) -> int:
         value = self._unindex.get(documentId, 0)
-        return value if isinstance(value, int) else 0
+        # bool is an int subclass but never a size
+        if isinstance(value, int) and not isinstance(value, bool):
+            return value
+        return 0
+
+    def _apply_delta(self, delta):
+        if delta:
+            self._ensure_total().change(delta)
+            guard.note_index_change(self, delta)
 
     def _index_object(self, documentId, obj, threshold=None, attr=""):
+        # Compare stored values; do NOT trust the return status (see below).
         old = self._stored(documentId)
         changed = super()._index_object(documentId, obj, threshold, attr)
-        if changed:
-            self._ensure_total().change(self._stored(documentId) - old)
+        self._apply_delta(self._stored(documentId) - old)
         return changed
 
     def unindex_object(self, documentId):
         old = self._stored(documentId)
         super().unindex_object(documentId)
-        if old:
-            self._ensure_total().change(-old)
+        self._apply_delta(-old)
 
     def _ensure_total(self):
         if self._total is None:
@@ -131,9 +138,19 @@ class BlobSizeIndex(FieldIndex):
         return self._ensure_total()()
 
     def rebuild_total(self) -> int:
-        self._total = Length(sum(v for v in self._unindex.values() if isinstance(v, int)))
+        self._total = Length(sum(self._stored(rid) for rid in self._unindex))
         return self._total()
 ```
+
+Why the delta is always computed from stored values: `UnIndex._index_object` removes
+an existing entry when the new datum is `None` but **returns 0**, so a total that only
+moved when the base reported a change would miss those removals.
+
+`ZCatalog.reindexIndex` (ZMI "Reindex" on the index) only re-catalogs each path; the
+index gets no "pass started/finished" signal. So "Reindex" populates an empty index and
+keeps a correct total correct, but it does **not** repair a corrupted total. Repair
+paths: ZMI "Clear" + "Reindex" on the index, "Clear and rebuild" on the catalog, or
+`@@quota-rebuild` / `rebuild_usage()` (which calls `rebuild_total()`).
 
 Zope product registration so GenericSetup can instantiate the meta type:
 
@@ -142,7 +159,9 @@ Zope product registration so GenericSetup can instantiate the meta type:
 def manage_addBlobSizeIndex(self, id, extra=None, REQUEST=None, RESPONSE=None, URL3=None):
     return self.manage_addIndex(id, "BlobSizeIndex", extra=extra, REQUEST=REQUEST, RESPONSE=RESPONSE, URL1=URL3)
 
-manage_addBlobSizeIndexForm = PageTemplateFile("templates/add_blob_size_index.pt", globals())
+manage_addBlobSizeIndexForm = PageTemplateFile(
+    "templates/add_blob_size_index.pt", globals(), __name__="manage_addBlobSizeIndexForm"
+)  # without __name__ the product registers the form as "add_blob_size_index"
 
 # __init__.py
 def initialize(context):
@@ -159,6 +178,10 @@ def initialize(context):
 (needs `xmlns:five`). The ZMI add form is a minimal template (id field + submit),
 mirroring `Products.PluginIndexes` forms; it only matters for ZMI users.
 
+Test layer: `five:registerPackage` initializers only run for installed products, so
+`setUpZope` calls `plone.testing.zope.installProduct(app, "collective.quota")` (and
+`tearDownZope` uninstalls it). Without it GenericSetup cannot find the meta type.
+
 `profiles/default/catalog.xml`:
 
 ```xml
@@ -174,14 +197,13 @@ mirroring `Products.PluginIndexes` forms; it only matters for ZMI users.
 
 ### Read API — `usage.py`
 
-```python
-@dataclass(frozen=True)
-class QuotaSettings:
-    soft_bytes: int
-    hard_bytes: int
-    policy: str
-    max_file_bytes: int
+`QuotaSettings` and `get_settings()` live in `settings.py` (architecture §2) and are
+re-exported by `usage.py`. In this phase `settings.py` is a stub: `DEFAULTS`, the frozen
+`QuotaSettings` dataclass (`soft_bytes`, `hard_bytes`, `policy`, `max_file_bytes`,
+`sources`, `locked`) and `get_settings()` returning the built-in defaults with every
+source `default`. Phase 3 replaces `get_settings()`.
 
+```python
 @dataclass(frozen=True)
 class UsageInfo:
     total: int
@@ -190,12 +212,18 @@ class UsageInfo:
     percent: int | None      # of hard limit, None when hard disabled
     level: str               # "ok" | "warning" | "exceeded"
 
-def get_index(portal=None) -> BlobSizeIndex | None    # portal_catalog._catalog.getIndex("blob_size"), None if missing
-def get_total_usage(portal=None) -> int               # 0 when index missing
-def get_settings() -> QuotaSettings                   # reads registry (phase 3 wires the records; until then returns zeros/defaults)
-def get_usage_info(portal=None) -> UsageInfo
-def rebuild_usage(portal, update_metadata=True, log_every=1000) -> int
+def get_index(portal=None) -> BlobSizeIndex | None    # None if missing or not a BlobSizeIndex
+def get_total_usage(portal=None) -> int               # flushes the indexing queue; 0 when index missing
+def get_usage_info(portal=None) -> UsageInfo          # percent = total * 100 // hard (floor; may exceed 100)
+def rebuild_usage(portal, update_metadata=True, log_every=1000, commit_every=0) -> int
 ```
+
+**Indexing queue.** Plone queues `reindexObject()`, content creation and deletion
+(`Products.CMFCore.indexing`), and flushes the queue on the next catalog *search* or in
+its own before-commit hook. Reading the index directly does neither, so
+`get_total_usage()` and `rebuild_usage()` call `processQueue()` first (cheap when the
+queue is empty). Without it the total lags behind changes made earlier in the same
+request.
 
 `rebuild_usage` is the shared repair routine used by `post_install`, `@@quota-rebuild`,
 future upgrade steps, and the `zconsole` script. It runs inside `guard_suspended()`
@@ -204,14 +232,22 @@ guard; until phase 4 lands, `guard_suspended` is a no-op context manager stub in
 `guard.py`:
 
 ```python
-catalog = api.portal.get_tool("portal_catalog")
-for i, brain in enumerate(catalog.unrestrictedSearchResults(), 1):
-    obj = brain._unrestrictedGetObject()
+index = get_index(portal)
+if index is None: return 0
+processQueue()
+# An empty query returns NOTHING in current ZCatalog: query by the site path.
+brains = catalog.unrestrictedSearchResults(path="/".join(portal.getPhysicalPath()))
+for each brain (in batches of commit_every when > 0, each batch inside guard_suspended()):
+    obj = brain._unrestrictedGetObject()   # ConflictError re-raised; other errors logged, skipped
     catalog.catalog_object(obj, idxs=["blob_size"], update_metadata=1 if update_metadata else 0)
-    if i % log_every == 0: logger.info(...)
-index = get_index(portal); index.rebuild_total()
-return count   # number of objects visited (0 on an empty catalog)
+    log every log_every items
+    after a full batch: transaction.commit()
+index.rebuild_total()
+return count   # items re-cataloged, including the site root
 ```
+
+`commit_every` exists for the zconsole script; the suspension is re-entered for each
+batch because the guard ledger is per transaction.
 
 `update_metadata=1` is what makes the `blob_size` **column** correct for existing
 content; plain ZMI "reindex index" leaves the column empty. Consumers (phase 5) must
@@ -228,13 +264,16 @@ and must be resilient to objects that fail to load (log and continue).
 
 ### Manual repair entry points
 
-- `@@quota-rebuild` (`browser/rebuild.py`): POST only, requires `plone.protect`
+- `@@quota-rebuild` (`browser/rebuild.py`): POST only (other methods raise
+  `zExceptions.MethodNotAllowed`, HTTP 405), requires `plone.protect`
   authenticator and `ManageSettings`; calls `rebuild_usage`, adds a status message with
   the item count and the new total, redirects to `@@quota-controlpanel` (phase 3) or the
   portal if that view does not exist yet.
 - `backend/scripts/rebuild_blob_size.py`: run with
   `.venv/bin/zconsole run instance/etc/zope.conf scripts/rebuild_blob_size.py [site-id]`;
-  commits every 1000 objects; documented for very large sites.
+  commits every 1000 objects; documented for very large sites. `zconsole run` does not
+  pass extra arguments to the script, so the site id is read from the last `sys.argv`
+  entry (default `Plone`). `main(app, site_id)` returns 0, or 1 if the site is missing.
 
 ## Files
 
@@ -246,7 +285,8 @@ Create:
 - `backend/src/collective/quota/browser/rebuild.py`
 - `backend/src/collective/quota/profiles/uninstall/catalog.xml`
 - `backend/scripts/rebuild_blob_size.py`
-- `backend/tests/test_indexer.py`, `test_index_total.py`, `test_install_existing_content.py`, `test_rebuild.py`
+- `backend/src/collective/quota/guard.py` (stub), `settings.py` (stub)
+- `backend/tests/test_indexer.py`, `test_index_total.py`, `test_install_existing_content.py`, `test_rebuild.py`, `test_index_zmi.py`, `test_usage_api.py`
 
 Modify:
 - `backend/src/collective/quota/__init__.py` (`initialize`)
@@ -256,40 +296,44 @@ Modify:
 - `backend/src/collective/quota/profiles/default/catalog.xml`
 - `backend/src/collective/quota/profiles.zcml` (`post_handler`)
 - `backend/src/collective/quota/setuphandlers/__init__.py`
+- `backend/src/collective/quota/testing.py` (`installProduct`)
+- `backend/tests/test_scaffold.py` (`initial` profile test moved to the functional layer)
 
 ## Tasks
 
-- [ ] Implement `iter_blob_fields`, `get_stored_value`, `get_blob_sizes`, `has_blob_fields`, `blob_size` indexer; register adapter
-- [ ] Implement `BlobSizeIndex` with `_total`, `total()`, `rebuild_total()`
-- [ ] Implement `manage_addBlobSizeIndex` + minimal add form; `initialize()` + `five:registerPackage`
-- [ ] `catalog.xml` (default) and `catalog.xml` (uninstall)
-- [ ] Implement `usage.py` (`get_index`, `get_total_usage`, `get_settings` stub returning defaults, `get_usage_info`, `rebuild_usage`)
-- [ ] `post_install` handler wired through `profiles.zcml`
-- [ ] `@@quota-rebuild` view with CSRF + permission
-- [ ] `scripts/rebuild_blob_size.py`
-- [ ] Verify in a running site: ZMI → portal_catalog → Indexes shows `blob_size` of type `BlobSizeIndex`; "Reindex" works; "Clear and rebuild" keeps `total()` correct
-- [ ] `guard.py` stub: `note_index_change(index, delta)` no-op and `guard_suspended()` no-op context manager, both covered by tests
-- [ ] `make lint` / `make format` clean; coverage 100 %
+- [x] Implement `iter_blob_fields`, `get_stored_value`, `get_blob_sizes`, `has_blob_fields`, `blob_size` indexer; register adapter
+- [x] Implement `BlobSizeIndex` with `_total`, `total()`, `rebuild_total()`
+- [x] Implement `manage_addBlobSizeIndex` + minimal add form; `initialize()` + `five:registerPackage`
+- [x] `catalog.xml` (default) and `catalog.xml` (uninstall)
+- [x] Implement `usage.py` (`get_index`, `get_total_usage`, `get_settings` stub returning defaults, `get_usage_info`, `rebuild_usage`)
+- [x] `post_install` handler wired through `profiles.zcml`
+- [x] `@@quota-rebuild` view with CSRF + permission
+- [x] `scripts/rebuild_blob_size.py`
+- [x] Verify in a running site: `blob_size` is a `BlobSizeIndex`; "Reindex" and "Clear and rebuild" keep `total()` correct; the script repairs a zeroed total
+- [x] `guard.py` stub: `note_index_change(index, delta)` no-op and `guard_suspended()` no-op context manager, both covered by tests
+- [x] `make lint` / `make format` clean; coverage 100 %
 
 ## Tests
 
-- [ ] `test_indexer.py::test_file_indexed` — File with 10 KB blob → `blob_size == 10240` in index and metadata
-- [ ] `test_indexer.py::test_image_indexed` — Image → size of the PNG
-- [ ] `test_indexer.py::test_lead_image_behavior` — Document with lead image → indexed; Document without blob fields → not in index (`catalog(blob_size={...})` does not return it; `brain.blob_size is Missing.Value`)
-- [ ] `test_indexer.py::test_multi_field_sum` — `quota_multi` with 3 blobs → sum; clearing one field → sum updated after reindex
-- [ ] `test_indexer.py::test_empty_blob_fields_index_zero` — File with no file → `0`
-- [ ] `test_indexer.py::test_corrupt_blob_counts_zero_and_logs`
-- [ ] `test_index_total.py::test_total_follows_add_edit_delete` — create 3 files, assert total; replace one file, assert; delete one, assert
-- [ ] `test_index_total.py::test_total_follows_move_copy_rename` — `api.content.move`, `copy`, `rename`; total changes only on copy
-- [ ] `test_index_total.py::test_total_follows_folder_delete` — deleting a folder with 2 files subtracts both
-- [ ] `test_index_total.py::test_clear_and_rebuild_restores_total` — `catalog.clearFindAndRebuild()` → total equals recomputed sum
-- [ ] `test_index_total.py::test_reindex_index_restores_total` — zero `_total` by hand, `catalog.reindexIndex("blob_size", request)` → correct
-- [ ] `test_index_total.py::test_total_lazy_rebuild_when_attribute_missing` — simulate old pickle (`del index._total`) → `total()` recomputes
-- [ ] `test_install_existing_content.py` — uninstall add-on, create content, reinstall → index, metadata, and total populated by `post_install`
-- [ ] `test_rebuild.py` — `@@quota-rebuild` GET → 405/redirect, POST without token → 403, POST as Manager → total rebuilt and status message; Editor → `Unauthorized`
-- [ ] `test_rebuild.py::test_script_runs` — import the script's `main(app, site_id)` and run it against the test app; also the "site id not found" branch
-- [ ] `test_index_zmi.py` — `manage_addBlobSizeIndex` adds an index of the right meta type through a ZMI-style call; the add form renders; `initialize()` registers the class (`Products.meta_types` contains `BlobSizeIndex`)
-- [ ] `test_usage_api.py` — `get_index` returns `None` without the index; `get_total_usage` returns 0 then; `get_usage_info` levels `ok`/`warning`/`exceeded` and `percent` `None` when hard is disabled; `rebuild_usage` logs every `log_every` items and skips objects that fail to load
+- [x] `test_indexer.py::test_file_indexed` — File with 10 KB blob → `blob_size == 10240` in index and metadata
+- [x] `test_indexer.py::test_image_indexed` — Image → size of the PNG
+- [x] `test_indexer.py::test_lead_image_behavior` — Document with lead image → indexed. In the test layer Document *has* the lead image field, so a Document without an image is indexed as `0`; the "not in index" case uses Folder and Link (`catalog(blob_size={...})` does not return them; `brain.blob_size is Missing.Value`)
+- [x] `test_indexer.py::test_multi_field_sum` — `quota_multi` with 3 blobs → sum; clearing one field → sum updated after reindex
+- [x] `test_indexer.py::test_empty_blob_fields_index_zero` — File with no file → `0`
+- [x] `test_indexer.py::test_corrupt_blob_counts_zero_and_logs`
+- [x] `test_index_total.py::test_total_follows_add_edit_delete` — create 3 files, assert total; replace one file, assert; delete one, assert
+- [x] `test_index_total.py::test_total_follows_move_copy_rename` — `api.content.move`, `copy`, `rename`; total changes only on copy
+- [x] `test_index_total.py::test_total_follows_folder_delete` — deleting a folder with 2 files subtracts both
+- [x] `test_index_total.py::test_clear_and_rebuild_restores_total` — corrupt `_total`, `catalog.clearFindAndRebuild()` (queued in Plone 6) → `get_total_usage()` equals recomputed sum
+- [x] `test_index_total.py::test_reindex_index_populates_empty_index` — `manage_clearIndex` then `reindexIndex("blob_size", request)` → correct total
+- [x] `test_index_total.py::test_reindex_index_keeps_correct_total`
+- [x] `test_index_total.py::TestIndexUnit` — standalone index: index/reindex/unindex deltas, datum `None` removal subtracts, missing attribute kept out, non-int values (`True`, `1.5`) ignored, `clear()`, `note_index_change` called only for non-zero deltas
+- [x] `test_index_total.py::test_total_lazy_rebuild_when_attribute_missing` — simulate old pickle (`del index._total`) → `total()` recomputes
+- [x] `test_install_existing_content.py` — uninstall add-on, create content, reinstall → index, metadata, and total populated by `post_install`
+- [x] `test_rebuild.py` — `@@quota-rebuild` GET → `MethodNotAllowed`, POST without token → `Forbidden`, POST as Manager → total rebuilt, status message, redirect to the portal (or to `@@quota-controlpanel` when that view exists); Editor/Contributor/Reviewer/Member → `Unauthorized`, Manager/Site Administrator allowed (integration `restrictedTraverse`; the testbrowser hits a closed-connection error while re-raising `Unauthorized`)
+- [x] `test_rebuild.py::test_script_runs` — import the script's `main(app, site_id)` and run it against the test app; also the "site id not found" branch
+- [x] `test_index_zmi.py` — `manage_addBlobSizeIndex` adds an index of the right meta type through a ZMI-style call; the add form renders; `initialize()` registers the class (`Products.meta_types` contains `BlobSizeIndex`)
+- [x] `test_usage_api.py` — `get_index` returns `None` without the index; `get_total_usage` returns 0 then; `get_usage_info` levels `ok`/`warning`/`exceeded` and `percent` `None` when hard is disabled; `rebuild_usage` logs every `log_every` items and skips objects that fail to load
 
 ## Acceptance criteria
 
@@ -301,6 +345,18 @@ Modify:
 - ZMI "Clear and rebuild" never leaves a wrong total.
 
 ## Notes / risks
+
+Implementation notes (2026-10-15):
+
+- Verified with zconsole on a real instance: a bare site with 3 Files + 1 Image and no
+  add-on; installing through the Add-ons installer populated index, column and total
+  (biggest-first sort correct); replace/delete/move/copy kept the total exact after
+  commit; `manage_catalogRebuild` and `manage_reindexIndex` kept it exact; the script
+  repaired a hand-zeroed total. The ZMI screens themselves were not clicked through;
+  the add form is covered by a render test.
+- `plone.exportimport` commits during import, which leaked example content out of the
+  integration sandbox into later tests; the `initial` profile test now runs on the
+  functional layer.
 
 - `catalog_object(..., update_metadata=1)` refreshes **all** metadata columns of the
   item, which is fine but means the install step is as expensive as a full catalog

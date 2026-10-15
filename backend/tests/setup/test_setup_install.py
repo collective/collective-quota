@@ -26,3 +26,11 @@ class TestSetupInstall:
     def test_restapi_installed(self, installer):
         """plone.restapi:default is a dependency (REST layer, permissions)."""
         assert installer.is_product_installed("plone.restapi") is True
+
+    def test_blob_size_index_and_column(self, portal):
+        """The blob_size index is a BlobSizeIndex and has a metadata column."""
+        from collective.quota.catalog.blob_size_index import BlobSizeIndex
+
+        catalog = portal.portal_catalog
+        assert isinstance(catalog._catalog.getIndex("blob_size"), BlobSizeIndex)
+        assert "blob_size" in catalog.schema()

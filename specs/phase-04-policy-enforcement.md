@@ -414,6 +414,13 @@ Modify:
 
 ## Notes / risks
 
+- Indexing queue (found in phase 2): Plone flushes `Products.CMFCore.indexing`'s queue
+  in its *own* before-commit hook, so when `check_quota` runs, queued reindexes may not
+  be applied yet. `check_quota` must read the total through `get_total_usage()` (which
+  calls `processQueue()`), never `index.total()` directly. The index may also register
+  the guard hook *while* the queue hook runs; `transaction` runs hooks appended during
+  the hook loop, but cover this ordering with a test.
+
 - `plone.namedfile` pluggable validation minimum version: confirm in
   `backend/requirements-mxdev.txt`/constraints; if the installed version lacks it, pin a
   newer `plone.namedfile` compatible with Plone 6.2 and record it in `pyproject.toml`.
