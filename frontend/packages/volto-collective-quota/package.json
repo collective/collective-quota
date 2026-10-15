@@ -1,0 +1,47 @@
+{
+  "name": "volto-collective-quota",
+  "version": "1.0.0-alpha.0",
+  "description": "This product allows to configure a quota limit for Plone sites. It also provides a convenient view for quickly finding the biggest items in case you need to delete",
+  "main": "src/index.ts",
+  "license": "MIT",
+  "keywords": [
+    "volto-addon",
+    "volto",
+    "plone",
+    "react"
+  ],
+  "author": "Enfold Systems, Inc.",
+  "homepage": "https://github.com/collective/collective-quota#readme",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:collective/collective-quota"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "i18n": "rm -rf build/messages && NODE_ENV=production i18n --addon",
+    "dry-release": "release-it --dry-run",
+    "release": "release-it",
+    "release-major-alpha": "release-it major --preRelease=alpha",
+    "release-alpha": "release-it --preRelease=alpha"
+  },
+  "addons": [],
+  "theme": "",
+  "dependencies": {},
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@plone/registry": "workspace:*",
+    "@plone/scripts": "workspace:*",
+    "@plone/types": "workspace:*",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
+    "typescript": "^5.7.3",
+    "@testing-library/react": "^16.2.0",
+    "release-it": "^19.0.5",
+    "vitest": "^3.1.2"
+  }
+}
