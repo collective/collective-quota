@@ -1,3 +1,4 @@
+from collective.quota.guard import guard_suspended
 from collective.quota.settings import ENV_VARS
 from collective.quota.settings import FIELDS
 from collective.quota.settings import LOCK_VAR
@@ -16,6 +17,7 @@ from plone.namedfile.file import NamedBlobFile
 from plone.namedfile.file import NamedBlobImage
 from plone.registry.interfaces import IRegistry
 from plone.testing.zope import Browser
+from Products.CMFCore.indexing import processQueue
 from pytest_plone import fixtures_factory
 from zope.component import getUtility
 
@@ -152,18 +154,21 @@ def make_blob():
 def make_file(make_blob):
     """make_file(container, id, size_bytes, type="File") -> created object
 
-    Uses plone.api on purpose (no form or policy validation), so tests can push
-    a site over its limit before testing enforcement.
+    Uses plone.api under ``guard_suspended()`` on purpose (no form, policy or
+    commit-guard checks), so tests can push a site over its limit before
+    testing enforcement.
     """
 
     def func(container, id, size_bytes, type="File"):  # noqa: A002
         field, image = BLOB_FIELDS[type]
         filename = f"{id}.png" if image else f"{id}.bin"
         blob = make_blob(size_bytes, filename=filename, image=image)
-        with api.env.adopt_roles(["Manager"]):
-            return api.content.create(
+        with api.env.adopt_roles(["Manager"]), guard_suspended():
+            obj = api.content.create(
                 container=container, type=type, id=id, title=id, **{field: blob}
             )
+            processQueue()  # index now, while the guard is suspended
+        return obj
 
     return func
 

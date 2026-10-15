@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2026-10-15 18:03+0000\n"
+"POT-Creation-Date: 2026-10-15 19:13+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -78,6 +78,10 @@ msgstr ""
 msgid "Default"
 msgstr ""
 
+#: collective/quota/browser/templates/quota_error.pt:12
+msgid "Disk quota exceeded"
+msgstr ""
+
 #: collective/quota/controlpanels/quota.py:41
 msgid "Environment"
 msgstr ""
@@ -88,6 +92,10 @@ msgstr ""
 
 #: collective/quota/browser/templates/controlpanel.pt:128
 msgid "Environment variable"
+msgstr ""
+
+#: collective/quota/browser/templates/quota_error.pt:25
+msgid "Go back"
 msgstr ""
 
 #: collective/quota/interfaces.py:40
@@ -108,6 +116,14 @@ msgstr ""
 
 #: collective/quota/interfaces.py:58
 msgid "Maximum file size over the limit (MB)"
+msgstr ""
+
+#: collective/quota/policy.py:33
+msgid "New content cannot be added: the site has reached its disk quota (${used} of ${limit}). Delete or shrink existing files first."
+msgstr ""
+
+#: collective/quota/browser/templates/quota_error.pt:20
+msgid "Nothing was saved. Delete or shrink existing files, or ask a site administrator to raise the quota."
 msgstr ""
 
 #: collective/quota/interfaces.py:59
@@ -179,8 +195,24 @@ msgstr ""
 msgid "Source"
 msgstr ""
 
+#: collective/quota/guard.py:36
+msgid "The change was cancelled: it would add ${delta} to the site and exceed the disk quota (${used} of ${limit})."
+msgstr ""
+
+#: collective/quota/guard.py:40
+msgid "The change was cancelled: new content cannot be added while the site exceeds its disk quota (${used} of ${limit})."
+msgstr ""
+
+#: collective/quota/policy.py:29
+msgid "The site has reached its disk quota (${used} of ${limit}); only files up to ${max_size} can be added now. This file is ${size}."
+msgstr ""
+
 #: collective/quota/settings.py:52
 msgid "The soft limit cannot be higher than the hard limit."
+msgstr ""
+
+#: collective/quota/policy.py:25
+msgid "This file cannot be saved: the site has reached its disk quota (${used} of ${limit}). Delete or shrink existing files first."
 msgstr ""
 
 #: collective/quota/profiles.zcml:14

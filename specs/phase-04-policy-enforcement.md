@@ -1,6 +1,6 @@
 # Phase 4 — Quota policy, enforcement in Classic forms and REST, transaction commit guard
 
-Status: Not started
+Status: Done
 Depends on: Phase 2, Phase 3
 Last updated: 2026-10-15
 
@@ -176,7 +176,9 @@ item is not created.
 ### Hook C — REST add guard (`restapi/deserializer.py`)
 
 ```python
-class _AddGuardMixin:
+@implementer(IDeserializeFromJson)
+@adapter(IDexterityContent, IQuotaRestapiLayer)
+class QuotaAwareDeserializer(DeserializeFromJson):
     def __call__(self, validate_all=False, data=None, create=False, mask_validation_errors=True):
         if create:
             decision = evaluate_add(get_total_usage(), get_settings())
@@ -185,116 +187,79 @@ class _AddGuardMixin:
             record_approved_add()                           # ledger entry for hook D
         return super().__call__(validate_all=validate_all, data=data, create=create,
                                 mask_validation_errors=mask_validation_errors)
-
-
-@implementer(IDeserializeFromJson)
-@adapter(IDexterityContent, IQuotaRestapiLayer)
-class QuotaAwareDeserializer(_AddGuardMixin, DeserializeFromJson): ...
-
-
-@implementer(IDeserializeFromJson)
-@adapter(IDexterityContainer, IQuotaRestapiLayer)
-class QuotaAwareFolderDeserializer(_AddGuardMixin, DeserializeFolderFromJson): ...
 ```
 
-Both registrations are needed because `plone.restapi` registers separate deserializers
-for items and containers. Check the exact `__call__` signature of the installed
-`plone.restapi` and mirror it. Raising `BadRequest` inside the deserializer aborts the
-transaction (the half-created object is discarded) and yields a 400 JSON error.
+The installed `plone.restapi` registers a **single** `DeserializeFromJson` for
+`IDexterityContent` (items and containers alike; there is no separate folder
+deserializer), so one override covers both; the `__call__` signature above matches it.
+`POST` creates the object first and deserializes onto it with `create=True`, so the
+check runs before the object is added; TUS uploads (`@tus-upload`) go through the same
+deserializer. Raising `BadRequest` aborts the transaction and yields a 400 JSON error.
 
 ### Hook D — commit guard (`guard.py`)
 
 Normative description: `00-architecture.md` §5.1. Implementation:
 
 ```python
-LEDGER_KEY = "collective.quota.ledger"
+LEDGER_KEY = _LedgerKey()        # set_data() keys by id(), so use a module-level object
 
 
 @dataclass
 class Ledger:
     start_total: int | None = None
+    exempt_bytes: int = 0          # index changes made inside guard_suspended()
     approved_bytes: int = 0
     added_items: int = 0
     approved_items: int = 0
-    suspended: bool = False
     hook_registered: bool = False
 
 
 def get_ledger(txn=None) -> Ledger:
-    txn = txn or transaction.get()
-    ledger = txn.data(LEDGER_KEY) if _has_txn_data(txn) else _fallback.get(txn)
-    if ledger is None:
-        ledger = Ledger()
-        txn.set_data(LEDGER_KEY, ledger)      # or WeakKeyDictionary fallback keyed by txn
-    return ledger
+    # txn.data()/set_data() when available, else a WeakKeyDictionary keyed by txn
 
 
 def note_index_change(index, delta):          # called by BlobSizeIndex after a non-zero delta
     ledger = get_ledger()
     if ledger.start_total is None:
         ledger.start_total = index.total() - delta   # total before this first change
-    _ensure_hook(ledger)
-
-
-def record_approved_bytes(n: int):
-    get_ledger().approved_bytes += n
-
-
-def record_approved_add():
-    get_ledger().approved_items += 1
-
-
-@adapter(IDexterityContent, IObjectAddedEvent)
-def on_item_added(obj, event):
-    ledger = get_ledger()
-    ledger.added_items += 1
-    _ensure_hook(ledger)
-
-
-def _ensure_hook(ledger):
-    if not ledger.hook_registered:
-        transaction.get().addBeforeCommitHook(check_quota, args=(_portal_path(),))
-        ledger.hook_registered = True
-
-
-def check_quota(portal_path):
-    ledger = get_ledger()
-    if ledger.suspended:
+    if is_suspended():
+        ledger.exempt_bytes += delta                  # trusted change: not checked
         return
-    settings = get_settings()
-    if settings.hard_bytes <= 0:
-        return
-    portal = _resolve_portal(portal_path)      # unrestrictedTraverse; return if gone
-    index = get_index(portal)
-    if index is None:
-        return
-    total = index.total()
-    start = ledger.start_total if ledger.start_total is not None else total
-    net_delta = total - start
-    if (net_delta > 0 and total > settings.hard_bytes and settings.policy != ALLOW
-            and net_delta > ledger.approved_bytes):
-        logger.warning("quota guard aborted transaction: unapproved bytes ...")
-        raise QuotaCommitAborted("unapproved_bytes", mapping=...)
-    if (settings.policy == BLOCK_ALL and total >= settings.hard_bytes
-            and ledger.added_items > ledger.approved_items):
-        raise QuotaCommitAborted("unapproved_items", mapping=...)
+    _ensure_hook(ledger, index)
+
+
+def on_item_added(obj, event):                # IObjectAddedEvent, any IDexterityContent
+    if is_suspended(): return
+    ledger.added_items += 1; _ensure_hook(ledger, obj)
+
+
+def _ensure_hook(ledger, context):
+    # once per transaction; portal from getSite(), else acquired from context
+    transaction.get().addBeforeCommitHook(check_quota, args=(root, portal_path))
+
+
+def check_quota(root, portal_path):
+    portal = root.unrestrictedTraverse(portal_path, None)      # gone -> return
+    with site(portal):                                         # registry needs the site
+        settings = get_settings()
+        if settings.hard_bytes <= 0 or get_index(portal) is None: return
+        total = get_total_usage(portal)                        # flushes the indexing queue
+    net_delta = total - (ledger.start_total or total) - ledger.exempt_bytes
+    if net_delta > 0 and total > hard and policy != ALLOW and net_delta > ledger.approved_bytes:
+        raise QuotaCommitAborted("unapproved_bytes", mapping)  # logged as a warning
+    if policy == BLOCK_ALL and total >= hard and ledger.added_items > ledger.approved_items:
+        raise QuotaCommitAborted("unapproved_items", mapping)
 
 
 @contextmanager
 def guard_suspended():
-    ledger = get_ledger()
-    previous = ledger.suspended
-    ledger.suspended = True
-    logger.info("quota guard suspended by %s", <caller from inspect.stack()>)
-    try:
-        yield
-    finally:
-        ledger.suspended = previous
+    # thread-local depth counter (nesting-safe); logs the caller at INFO.
+    # Changes made inside the block are exempt; this holds across commits made
+    # inside the block, and changes made outside it are still checked.
 
 
 class QuotaCommitAborted(zExceptions.BadRequest):
-    # Raised from the before-commit hook; __str__ returns the translated message.
-    ...
+    # .reason, .mapping, .message; __str__ translates with getRequest()
 ```
 
 Registration: `<subscriber handler=".guard.on_item_added" />` in `configure.zcml`
@@ -303,11 +268,17 @@ Registration: `<subscriber handler=".guard.on_item_added" />` in `configure.zcml
 stub. `rebuild_usage` wraps its loop in `guard_suspended()`.
 
 Error surfaces:
-- Classic UI: the publisher aborts the transaction and renders the standard error page
-  with the `QuotaCommitAborted` message (translated in `__str__` using the request from
-  `getRequest()` when available). Normal users never reach it because hooks A–C deny
-  earlier; it appears for copy/paste over the limit and for custom code.
-- REST: `plone.restapi` error handling turns `BadRequest` into a 400 JSON body.
+- HTTP status: ZPublisher derives the status from the exception class *name*, so
+  `guard.py` registers `quotacommitaborted → 400` in `ZPublisher.HTTPResponse.status_codes`
+  (otherwise both UIs answer 500).
+- Classic UI: Plone's generic error page hides exception messages from non-managers, so
+  an exception view `index.html` for `(QuotaCommitAborted, IBrowserLayer)`
+  (`browser/errors.py`, `templates/quota_error.pt`) renders "Disk quota exceeded" with
+  the message for everybody; like Plone's own view it answers JSON
+  (`{"error_type", "message"}`) when the request does not accept `text/html`. Normal
+  users only reach it for copy/paste over the limit and custom code.
+- REST: the same view delegates `IAPIRequest`s to `plone.rest`'s `ErrorHandling`
+  (400 JSON body with `type` and `message`).
 - Scripts: the exception propagates from `transaction.commit()`.
 
 Messages (domain `collective.quota`):
@@ -337,7 +308,8 @@ Create:
 - `backend/src/collective/quota/validators.py`
 - `backend/src/collective/quota/browser/addform_guard.py`
 - `backend/src/collective/quota/restapi/deserializer.py`
-- `backend/tests/test_policy.py`, `test_enforcement_classic.py`, `test_enforcement_restapi.py`, `test_guard_unit.py`, `test_guard_integration.py`
+- `backend/src/collective/quota/browser/errors.py`, `browser/templates/quota_error.pt` (guard error page)
+- `backend/tests/test_policy.py`, `test_enforcement_classic.py`, `test_enforcement_restapi.py`, `test_guard_unit.py`, `test_guard_integration.py`, `test_validators.py`
 
 Modify:
 - `backend/src/collective/quota/policy.py` (full implementation)
@@ -350,56 +322,56 @@ Modify:
 
 ## Tasks
 
-- [ ] Implement `Decision`, `evaluate_upload`, `evaluate_add`, `QuotaExceeded`, messages
-- [ ] Implement and register `QuotaUploadValidator` (two named registrations)
-- [ ] Implement and register `QuotaAddFormValidator`; confirm the `IAddForm` discriminator against the installed `plone.dexterity`
-- [ ] Implement and register both REST deserializer overrides; confirm `__call__` signature against the installed `plone.restapi`
-- [ ] Implement `guard.py`: `Ledger`, `get_ledger` (+ fallback storage), `note_index_change`, `record_approved_bytes`, `record_approved_add`, `on_item_added`, `check_quota`, `guard_suspended`, `QuotaCommitAborted`; register the subscriber
-- [ ] Hooks A, B, C record approvals in the ledger
-- [ ] `rebuild_usage` runs under `guard_suspended()`; `post_install` on a site over the limit succeeds
-- [ ] Manual check (bypass): with hard 1 MB reached and `block_all`, copy/paste a 2 MB File in folder contents → error page with the guard message, nothing pasted; run a `zconsole` script using `plone.api.content.create` with a 2 MB file → `transaction.commit()` raises; wrap it in `guard_suspended()` → succeeds
-- [ ] Manual check (Classic): set hard 1 MB, policy `block_all`; add a 2 MB File → form error under the file field; add a Document → form-level error; replace an existing 2 MB file with 500 KB → saved
-- [ ] Manual check (REST, e.g. `curl`/httpie): same three cases → 400 / 400 / 204
-- [ ] `make i18n`; `make lint`; coverage 100 %
+- [x] Implement `Decision`, `evaluate_upload`, `evaluate_add`, `QuotaExceeded`, messages
+- [x] Implement and register `QuotaUploadValidator` (two named registrations)
+- [x] Implement and register `QuotaAddFormValidator`; confirm the `IAddForm` discriminator against the installed `plone.dexterity`
+- [x] Implement and register the REST deserializer override (one is enough, see Hook C); confirm `__call__` signature against the installed `plone.restapi`
+- [x] Implement `guard.py`: `Ledger`, `get_ledger` (+ fallback storage), `note_index_change`, `record_approved_bytes`, `record_approved_add`, `on_item_added`, `check_quota`, `guard_suspended`, `QuotaCommitAborted`; register the subscriber
+- [x] Hooks A, B, C record approvals in the ledger
+- [x] `rebuild_usage` runs under `guard_suspended()`; `post_install` on a site over the limit succeeds
+- [x] Manual check (bypass): with hard 1 MB reached and `block_all`, copy/paste a 2 MB File in folder contents → error page with the guard message, nothing pasted; run a `zconsole` script using `plone.api.content.create` with a 2 MB file → `transaction.commit()` raises; wrap it in `guard_suspended()` → succeeds
+- [x] Manual check (Classic): set hard 1 MB, policy `block_all`; add a 2 MB File → form error under the file field; add a Document → form-level error; replace an existing 2 MB file with 500 KB → saved
+- [x] Manual check (REST, e.g. `curl`/httpie): same three cases → 400 / 400 / 204
+- [x] `make i18n`; `make lint`; coverage 100 %
 
 ## Tests
 
-- [ ] `test_policy.py` — parametrised over the semantics table (every policy × new item / upload crossing / upload under limit / replace smaller / hard disabled / exactly at limit); `evaluate_add` for each policy at/below/above hard
-- [ ] `test_policy.py::test_messages_have_human_readable_sizes`
-- [ ] `test_enforcement_classic.py::test_upload_over_limit_blocked_on_add_form` — browser as Editor, `++add++File`, 2 MB upload with hard 1 MB → error text present, no object created, total unchanged
-- [ ] `test_enforcement_classic.py::test_upload_within_limit_saved`
-- [ ] `test_enforcement_classic.py::test_edit_replace_with_smaller_allowed_when_over_limit`
-- [ ] `test_enforcement_classic.py::test_edit_keep_existing_file_allowed` — edit title only on an over-limit site; "keep existing" radio → saved
-- [ ] `test_enforcement_classic.py::test_limit_file_size_policy` — 5 MB file with max 10 MB allowed; 15 MB denied
-- [ ] `test_enforcement_classic.py::test_block_all_blocks_document_add` — `++add++Document` over limit → form error; `block_files` → created
-- [ ] `test_enforcement_classic.py::test_lead_image_behavior_validated` — Document with lead image upload over limit → error
-- [ ] `test_enforcement_classic.py::test_multi_field_type_each_field_validated`
-- [ ] `test_enforcement_restapi.py::test_post_file_over_limit_400` — base64 `data` payload → 400, body contains the message and `"field": "file"`
-- [ ] `test_enforcement_restapi.py::test_patch_file_over_limit_400`
-- [ ] `test_enforcement_restapi.py::test_patch_resend_representation_allowed` — `{"download": ...}` without `data` → 204
-- [ ] `test_enforcement_restapi.py::test_patch_replace_with_smaller_allowed`
-- [ ] `test_enforcement_restapi.py::test_post_document_blocked_under_block_all` — 400; under `block_files` → 201
-- [ ] `test_enforcement_restapi.py::test_post_into_folder_uses_container_deserializer` — POST a Folder (container type) under `block_all` → 400
-- [ ] `test_enforcement_restapi.py::test_tus_upload_over_limit_400` (if TUS is easy to drive in tests; otherwise mark as manual)
-- [ ] `test_enforcement_restapi.py::test_transaction_aborted_on_400` — no partial object left in the folder
-- [ ] `test_guard_unit.py::test_ledger_created_once_per_transaction_and_cleared_after_commit`
-- [ ] `test_guard_unit.py::test_fallback_storage_when_transaction_lacks_set_data`
-- [ ] `test_guard_unit.py::test_note_index_change_sets_start_total_once_and_registers_hook_once`
-- [ ] `test_guard_unit.py::test_check_quota_matrix` — parametrised: hard disabled; net ≤ 0; under limit; over limit with full approval; over limit with partial approval (abort); `allow` policy; moves (net 0 with per-object churn); `block_all` with unapproved add at/above/below hard; `block_files` with unapproved add (allowed); suspended; portal gone; index missing
-- [ ] `test_guard_unit.py::test_guard_suspended_restores_previous_state_and_logs_caller`
-- [ ] `test_guard_unit.py::test_quota_commit_aborted_message_translated`
-- [ ] `test_guard_integration.py::test_plone_api_create_over_limit_aborted_on_commit` — `api.content.create` 2 MB file at hard 1 MB, `transaction.commit()` raises `QuotaCommitAborted`, object absent after `transaction.begin()`, total unchanged
-- [ ] `test_guard_integration.py::test_direct_attribute_write_and_reindex_aborted`
-- [ ] `test_guard_integration.py::test_copy_paste_over_limit_aborted` — `manage_pasteObjects` or `api.content.copy`
-- [ ] `test_guard_integration.py::test_move_and_rename_over_limit_allowed` — net 0
-- [ ] `test_guard_integration.py::test_delete_always_allowed_over_limit`
-- [ ] `test_guard_integration.py::test_validated_upload_commits` — form/REST path approves, commit succeeds
-- [ ] `test_guard_integration.py::test_multi_field_form_net_delta_within_approvals`
-- [ ] `test_guard_integration.py::test_block_all_unapproved_document_create_aborted_block_files_allowed`
-- [ ] `test_guard_integration.py::test_rebuild_usage_on_over_limit_site_succeeds` — fresh install with 3 MB of pre-existing content and hard 1 MB
-- [ ] `test_guard_integration.py::test_allow_policy_never_aborts`
-- [ ] `test_guard_integration.py::test_no_hook_registered_for_unrelated_transactions` — editing a Document title registers nothing (inspect `transaction.get()._before_commit`)
-- [ ] `test_guard_integration.py::test_env_locked_hard_limit_enforced_by_guard` — registry says 0, env says 1 MB with lock → guard aborts
+- [x] `test_policy.py` — parametrised over the semantics table (every policy × new item / upload crossing / upload under limit / replace smaller / hard disabled / exactly at limit); `evaluate_add` for each policy at/below/above hard
+- [x] `test_policy.py::test_messages_have_human_readable_sizes`
+- [x] `test_enforcement_classic.py::test_upload_over_limit_blocked_on_add_form` — browser as Editor, `++add++File`, 2 MB upload with hard 1 MB → error text present, no object created, total unchanged
+- [x] `test_enforcement_classic.py::test_upload_within_limit_saved`
+- [x] `test_enforcement_classic.py::test_edit_replace_with_smaller_allowed_when_over_limit`
+- [x] `test_enforcement_classic.py::test_edit_keep_existing_file_allowed` — edit title only on an over-limit site; "keep existing" radio → saved
+- [x] `test_enforcement_classic.py::test_limit_file_size_policy` — 5 MB file with max 10 MB allowed; 15 MB denied
+- [x] `test_enforcement_classic.py::test_block_all_blocks_document_add` — `++add++Document` over limit → form error; `block_files` → created
+- [x] `test_enforcement_classic.py::test_lead_image_behavior_validated` — Document with lead image upload over limit → error
+- [x] `test_enforcement_classic.py::test_multi_field_type_each_field_validated`
+- [x] `test_enforcement_restapi.py::test_post_file_over_limit_400` — base64 `data` payload → 400, body contains the message and `"field": "file"`
+- [x] `test_enforcement_restapi.py::test_patch_file_over_limit_400`
+- [x] `test_enforcement_restapi.py::test_patch_resend_representation_allowed` — `{"download": ...}` without `data` → 204
+- [x] `test_enforcement_restapi.py::test_patch_replace_with_smaller_allowed`
+- [x] `test_enforcement_restapi.py::test_post_document_blocked_under_block_all` — 400; under `block_files` → 201
+- [x] `test_enforcement_restapi.py::test_post_into_folder_uses_container_deserializer` — POST a Folder (container type) under `block_all` → 400 (same single deserializer)
+- [x] `test_enforcement_restapi.py::test_tus_upload_over_limit_400` (automated: `TestTus`, over and within the limit)
+- [x] `test_enforcement_restapi.py::test_transaction_aborted_on_400` — no partial object left in the folder
+- [x] `test_guard_unit.py::test_ledger_created_once_per_transaction_and_cleared_after_commit`
+- [x] `test_guard_unit.py::test_fallback_storage_when_transaction_lacks_set_data`
+- [x] `test_guard_unit.py::test_note_index_change_sets_start_total_once_and_registers_hook_once`
+- [x] `test_guard_unit.py::test_check_quota_matrix` — parametrised: hard disabled; net ≤ 0; under limit; over limit with full approval; over limit with partial approval (abort); `allow` policy; moves (net 0 with per-object churn); `block_all` with unapproved add at/above/below hard; `block_files` with unapproved add (allowed); suspended; portal gone; index missing
+- [x] `test_guard_unit.py::test_guard_suspended_restores_previous_state_and_logs_caller`
+- [x] `test_guard_unit.py::test_quota_commit_aborted_message_translated`
+- [x] `test_guard_integration.py::test_plone_api_create_over_limit_aborted_on_commit` — `api.content.create` 2 MB file at hard 1 MB, `transaction.commit()` raises `QuotaCommitAborted`, object absent after `transaction.begin()`, total unchanged
+- [x] `test_guard_integration.py::test_direct_attribute_write_and_reindex_aborted`
+- [x] `test_guard_integration.py::test_copy_paste_over_limit_aborted` — `manage_pasteObjects` or `api.content.copy`
+- [x] `test_guard_integration.py::test_move_and_rename_over_limit_allowed` — net 0
+- [x] `test_guard_integration.py::test_delete_always_allowed_over_limit`
+- [x] `test_guard_integration.py::test_validated_upload_commits` — form/REST path approves, commit succeeds
+- [x] `test_guard_integration.py::test_multi_field_form_net_delta_within_approvals`
+- [x] `test_guard_integration.py::test_block_all_unapproved_document_create_aborted_block_files_allowed`
+- [x] `test_guard_integration.py::test_rebuild_usage_on_over_limit_site_succeeds` — fresh install with 3 MB of pre-existing content and hard 1 MB
+- [x] `test_guard_integration.py::test_allow_policy_never_aborts`
+- [x] `test_guard_integration.py::test_no_hook_registered_for_unrelated_transactions` — editing a Document title registers nothing (inspect `transaction.get()._before_commit`)
+- [x] `test_guard_integration.py::test_env_locked_hard_limit_enforced_by_guard` — registry says 0, env says 1 MB with lock → guard aborts
 
 ## Acceptance criteria
 
@@ -413,6 +385,47 @@ Modify:
 - Error messages are translated and show sizes like "1.2 GB", never raw bytes.
 
 ## Notes / risks
+
+Implementation notes (2026-10-15):
+
+- **Suspension is scoped to changes, not to the commit.** The draft's
+  `guard_suspended()` set a ledger flag and restored it on exit, and `check_quota`
+  returned early when the flag was set. But the commit happens *after* the block, so
+  `rebuild_usage()` followed by `transaction.commit()` (the install path) would have
+  been aborted on a site over the limit. Now index changes made inside the block are
+  added to `ledger.exempt_bytes` and items added inside it are not counted. Suspension is a
+  thread-local depth counter, so it also covers commits made inside the block (a new
+  transaction gets a new ledger). GenericSetup's catalog import does not reindex new
+  indexes, so `post_install` is the only place the install fills the index.
+- **Add forms bind the field to the container.** z3c.form validates add-form fields
+  bound to the container, so a container with the same field (e.g. a lead image)
+  would have been read as the "old value". Hook A ignores the bound context while the
+  published view is an `IAddForm` (`_in_add_form()`, via `PUBLISHED.form_instance`).
+- `DefaultAddForm` provides `IAddForm` (z3c.form `AddForm`): the plain discriminator works.
+  Under `block_all` over the limit, the File add form shows both the add-blocked
+  (form-level) and the upload-blocked (field) errors.
+- `plone.namedfile` in Plone 6.2 has pluggable validation; no pin needed. The
+  validators are global (no layer): on sites without the index they allow everything.
+- Error surfaces: the 400 status registration and the exception view (see Hook D) were
+  not in the draft; without them REST answered 500 and editors saw no message.
+- Tests: `make_file` creates content under `guard_suspended()` and flushes the
+  indexing queue, so tests can still push a site over its limit. The "multi field"
+  Classic test documents the accepted overshoot: two 600 KB files each pass alone
+  under a 1 MB limit, the next upload is blocked. `test_validators.py` covers hook A
+  edge cases directly; error surfaces are covered by `TestErrorSurfaces`.
+- Manual check on a running instance (port 8091, temporary site at 2.3 MB with hard
+  1 MB and `block_all`, deleted afterwards), as a user with Editor + Contributor:
+  - Classic: adding a 2 MB File and adding a Document were refused with the form
+    errors.
+  - REST: `POST` of a File and of a Document returned 400.
+  - Copy/paste through `object_copy`/`object_paste` returned 400 and showed
+    "Disk quota exceeded" with the guard message; nothing was pasted.
+  - Replacing with a smaller file worked: REST `PATCH` 300 → 100 KB returned 204,
+    and the Classic edit 2 MB → 500 KB was saved.
+  - zconsole: `plone.api.content.create` of a 2 MB file made `transaction.commit()`
+    raise `QuotaCommitAborted` and left no object. The same create inside
+    `guard_suspended()` committed.
+
 
 - Indexing queue (found in phase 2): Plone flushes `Products.CMFCore.indexing`'s queue
   in its *own* before-commit hook, so when `check_quota` runs, queued reindexes may not

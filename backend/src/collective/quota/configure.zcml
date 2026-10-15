@@ -30,6 +30,25 @@
   <include package=".serializers" />
   <include package=".vocabularies" />
 
+  <!-- Hook A: named, so plone.namedfile's own content-type validators stay. -->
+  <adapter
+      factory=".validators.QuotaUploadValidator"
+      provides="plone.namedfile.interfaces.IPluggableFileFieldValidation"
+      name="collective.quota"
+      />
+  <adapter
+      factory=".validators.QuotaUploadValidator"
+      provides="plone.namedfile.interfaces.IPluggableImageFieldValidation"
+      name="collective.quota"
+      />
+
+  <!-- Hook D: count new items (no layer: scripts have no request layer). -->
+  <subscriber
+      for="plone.dexterity.interfaces.IDexterityContent
+           zope.lifecycleevent.interfaces.IObjectAddedEvent"
+      handler=".guard.on_item_added"
+      />
+
   <!-- -*- extra stuff goes here -*- -->
 
 </configure>

@@ -270,7 +270,7 @@ guard makes the hard limit impossible to bypass. All four share `policy.py`:
 |---|---|---|---|
 | A. Pluggable field validator (`IPluggableFileFieldValidation` + `IPluggableImageFieldValidation`, named `collective.quota`, for `(INamedField, Interface)`) | Every upload: Classic add/edit forms, REST `POST`/`PATCH` (base64 and multipart), TUS uploads | Inside `NamedField.validate(value)`, which `plone.namedfile` fields call and which both z3c.form (`SimpleFieldValidator`) and `plone.restapi` (`NamedFieldDeserializer`) invoke | Classic: field error on the form. REST: HTTP 400 with the field error list |
 | B. Add-form guard (`IManagerValidator` subclass for `(Interface, IBrowserLayer, z3c.form.interfaces.IAddForm, IInterface, Interface)`) | "No new items" part of `block_all` in Classic | z3c.form `extractData()` of Dexterity add forms | Form-level error, nothing is created |
-| C. REST add guard (`IDeserializeFromJson` overrides for `(IDexterityContent, IQuotaRestapiLayer)` and `(IDexterityContainer, IQuotaRestapiLayer)`) | "No new items" part of `block_all` in REST | `__call__(..., create=True)` before delegating to `plone.restapi` | HTTP 400 `BadRequest` |
+| C. REST add guard (`IDeserializeFromJson` override for `(IDexterityContent, IQuotaRestapiLayer)`; plone.restapi has one deserializer for items and containers) | "No new items" part of `block_all` in REST | `__call__(..., create=True)` before delegating to `plone.restapi` | HTTP 400 `BadRequest` |
 | D. Commit guard (`guard.py`: transaction before-commit hook + per-transaction ledger) | Everything that reaches the catalog or fires `IObjectAddedEvent`: `plone.api`, `invokeFactory`, copy/paste, imports, scripts, custom widgets, future REST services | `transaction.addBeforeCommitHook`, registered lazily by the index and by the added-event subscriber | Transaction aborted; `QuotaCommitAborted(BadRequest)` → Classic error page / REST 400 |
 
 Hook A details that make it correct in both UIs:
@@ -293,8 +293,8 @@ Hooks A–C can be bypassed by any code that writes blobs without going through 
 validation. Hook D closes that gap with a cheap bookkeeping scheme:
 
 **Ledger.** A per-transaction record stored with `transaction.get().set_data(KEY, ledger)`
-(`transaction` ≥ 2.0 transaction-scoped data; falls back to a `threading.local` keyed by
-transaction id if unavailable). Fields:
+(`transaction` ≥ 2.0 transaction-scoped data; falls back to a `WeakKeyDictionary` keyed
+by the transaction if unavailable). Fields:
 
 | Field | Written by | Meaning |
 |---|---|---|
@@ -302,7 +302,7 @@ transaction id if unavailable). Fields:
 | `approved_bytes` | Hook A, when it allows an upload with `delta > 0` | Sum of positive deltas that the policy explicitly allowed |
 | `added_items` | `IObjectAddedEvent` subscriber (any `IDexterityContent`) | Number of new items in this transaction (copies count; moves do not) |
 | `approved_items` | Hooks B and C when `evaluate_add` allows | Number of adds the policy explicitly allowed |
-| `suspended` | `guard_suspended()` context manager | Guard disabled for this transaction (trusted code only) |
+| `exempt_bytes` | `BlobSizeIndex` changes made inside `guard_suspended()` | Bytes excluded from the check (trusted code only) |
 | `hook_registered` | guard | The before-commit hook was added once |
 
 Validators write only integers: "validation adds something to the request that is
@@ -316,11 +316,10 @@ register anything, so the common case costs nothing.
 **Check at commit (`check_quota`)**, runs before the ZODB two-phase commit:
 
 ```
-if ledger.suspended: return
-settings = get_settings()
+settings = get_settings()             # with the portal as the active site
 if settings.hard_bytes <= 0: return
 total = get_total_usage(portal)       # flushes the indexing queue; includes this transaction
-net_delta = total - ledger.start_total                     # 0 when only moves/renames happened
+net_delta = total - ledger.start_total - ledger.exempt_bytes   # 0 when only moves/renames happened
 if net_delta > 0 and total > settings.hard_bytes and settings.policy != ALLOW:
     if net_delta > ledger.approved_bytes:
         raise QuotaCommitAborted("unapproved bytes", mapping=...)
@@ -331,8 +330,10 @@ if settings.policy == BLOCK_ALL and total >= settings.hard_bytes:
 
 Raising inside a before-commit hook makes `transaction.commit()` raise; the publisher
 aborts the transaction, nothing is written (blob files staged by `ZODB.blob` are
-discarded on abort), and the exception is rendered: Classic shows the standard error
-page with the translated message, REST returns 400.
+discarded on abort), and the exception is rendered with status 400 (registered in
+`ZPublisher.HTTPResponse.status_codes`, which maps exception class names): Classic shows
+a "Disk quota exceeded" page with the translated message to every user (exception
+view `index.html` for `QuotaCommitAborted`), REST returns the usual JSON error.
 
 **Why `net_delta` and not per-object deltas:** a move or rename re-catalogs the item
 under a new record id (`−S` then `+S`), which is net 0. A copy is net `+S` and has no
@@ -346,8 +347,10 @@ through a validator that said yes?" Under `limit_file_size`, validators approve 
 files within the cap, so unapproved bytes from bypass paths are rejected even when
 they would individually be small. This is deliberately stricter for bypass paths.
 
-**Escape hatch.** `with guard_suspended():` disables the guard for the current
-transaction. It is a Python-only API meant for `rebuild_usage()` (a fresh install
+**Escape hatch.** `with guard_suspended():` exempts the changes made inside the block
+(index deltas go to `exempt_bytes`, added items are not counted); the scope is the
+current thread, across commits made inside the block, and changes made outside it are
+still checked. It is a Python-only API meant for `rebuild_usage()` (a fresh install
 would otherwise look like a huge unapproved delta), migrations, and imports run by an
 administrator. It is not reachable from any view or REST endpoint, and every use is
 logged at INFO with the caller.

@@ -1,7 +1,5 @@
 from Acquisition import aq_base
 from collective.quota import usage
-from collective.quota.guard import guard_suspended
-from collective.quota.guard import note_index_change
 from collective.quota.settings import QuotaSettings
 from collective.quota.usage import get_index
 from collective.quota.usage import get_total_usage
@@ -125,10 +123,3 @@ class TestRebuildUsage:
         count = rebuild_usage(functional_portal, commit_every=2)
         assert count == 4  # site root + 3 files
         assert get_total_usage(functional_portal) == 300
-
-
-class TestStubs:
-    def test_guard_stubs(self):
-        assert note_index_change(None, 5) is None
-        with guard_suspended():
-            pass

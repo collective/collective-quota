@@ -55,6 +55,41 @@ COLLECTIVE_QUOTA_LOCK_SETTINGS=1 \
 make start
 ```
 
+### Enforcement
+
+When a save would push total usage above the hard limit, the policy decides:
+
+| Policy | New items without files | Uploads that add bytes | Replacing with a smaller file |
+|---|---|---|---|
+| `block_all` | refused | refused | allowed |
+| `block_files` | allowed | refused | allowed |
+| `limit_file_size` | allowed | allowed up to the maximum file size | allowed |
+| `allow` | allowed | allowed (warnings only) | allowed |
+
+Deleting content and replacing a file with a smaller one always work, so editors
+can clean up. Classic forms show the error on the file field (or at the top of the
+add form); REST clients get `400 Bad Request` with the message.
+
+A commit guard also checks every transaction that changes stored file sizes or
+adds items, whatever the code path (copy/paste, `plone.api`, imports, scripts). If
+the change crosses the hard limit without a form or REST validation having approved
+it, the transaction is aborted with "The change was cancelled: …" (`400` over HTTP,
+an exception from `transaction.commit()` in scripts).
+
+Trusted administrator code can exempt its own changes:
+
+```python
+from collective.quota.guard import guard_suspended
+
+with guard_suspended():
+    ...  # changes made here are not checked by the guard
+transaction.commit()
+```
+
+Each use is logged. Prefer raising the hard limit temporarily (for example with
+`COLLECTIVE_QUOTA_HARD_LIMIT_MB`) when possible. `guard_suspended()` is not reachable
+from the web.
+
 ## Installation
 
 Install collective.quota with uv.

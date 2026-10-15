@@ -4,6 +4,9 @@
     i18n_domain="collective.quota"
     >
 
+  <!-- Hook C: block_all refuses new items created through REST. -->
+  <adapter factory=".deserializer.QuotaAwareDeserializer" />
+
   <!-- -*- extra stuff goes here -*- -->
 
 </configure>
