@@ -37,7 +37,7 @@ Code lives in `backend/` (Python, Plone 6.2) and, in a later iteration, `fronten
 | # | File | Title | Status | Depends on |
 |---|---|---|---|---|
 | 0 | [00-architecture.md](00-architecture.md) | Architecture & canonical names | Reference | — |
-| 1 | [phase-01-foundation.md](phase-01-foundation.md) | Foundation: package cleanup, permissions, layers, test fixtures | Not started | — |
+| 1 | [phase-01-foundation.md](phase-01-foundation.md) | Foundation: package cleanup, permissions, layers, test fixtures | Done | — |
 | 2 | [phase-02-blob-size-index.md](phase-02-blob-size-index.md) | `blob_size` indexer, `BlobSizeIndex` with running total, install-time population | Not started | 1 |
 | 3 | [phase-03-settings-control-panel.md](phase-03-settings-control-panel.md) | Settings: registry + environment variables + lock flag, control panel, REST control panel adapter | Not started | 1, 2 |
 | 4 | [phase-04-policy-enforcement.md](phase-04-policy-enforcement.md) | Quota policy, enforcement in Classic forms and REST, transaction commit guard | Not started | 2, 3 |

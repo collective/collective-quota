@@ -133,6 +133,7 @@ lint: ## Check and fix code base according to Plone standards
 	@uvx pyroma@latest -d .
 	@uvx check-python-versions@latest .
 	@uvx zpretty@latest --check src
+	@if grep -rn "pragma: no cover" src tests; then echo "$(RED)==> 'pragma: no cover' is not allowed$(RESET)"; exit 1; fi
 
 .PHONY: format
 format: ## Check and fix code base according to Plone standards
@@ -154,7 +155,7 @@ test: $(VENV_FOLDER) ## run tests
 
 .PHONY: test-coverage
 test-coverage: $(VENV_FOLDER) ## run tests with coverage
-	@$(BIN_FOLDER)/pytest --cov=$(PACKAGE_NAME) --cov-report term-missing
+	@$(BIN_FOLDER)/pytest --cov --cov-branch --cov-report term-missing --cov-fail-under=100
 
 # Build Docker images
 .PHONY: build-image

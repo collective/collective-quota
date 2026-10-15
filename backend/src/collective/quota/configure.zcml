@@ -16,8 +16,11 @@
   <include file="profiles.zcml" />
   <include file="permissions.zcml" />
 
+  <include package=".browser" />
+  <include package=".catalog" />
   <include package=".controlpanels" />
   <include package=".indexers" />
+  <include package=".restapi" />
   <include package=".serializers" />
   <include package=".vocabularies" />
 

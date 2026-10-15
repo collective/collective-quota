@@ -1,5 +1,15 @@
 <configure xmlns="http://namespaces.zope.org/zope">
 
+  <permission
+      id="collective.quota.ManageSettings"
+      title="collective.quota: Manage Quota Settings"
+      />
+
+  <permission
+      id="collective.quota.ViewDiskUsage"
+      title="collective.quota: View Disk Usage"
+      />
+
   <!-- -*- extra stuff goes here -*- -->
 
 </configure>

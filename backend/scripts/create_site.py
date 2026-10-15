@@ -1,6 +1,7 @@
 from AccessControl.SecurityManagement import newSecurityManager
 from collective.quota.interfaces import IBrowserLayer
 from Products.CMFPlone.factory import _DEFAULT_PROFILE
+from Products.CMFPlone.factory import _TYPES_PROFILE
 from Products.CMFPlone.factory import addPloneSite
 from Products.GenericSetup.tool import SetupTool
 from Testing.makerequest import makerequest
@@ -47,7 +48,7 @@ site_id = "Plone"
 payload = {
     "title": "Collective Quota",
     "profile_id": _DEFAULT_PROFILE,
-    "distribution_name": "volto",
+    "extension_ids": (_TYPES_PROFILE,),
     "setup_content": False,
     "default_language": "en",
     "portal_timezone": "UTC",

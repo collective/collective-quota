@@ -3,4 +3,7 @@
   <layer name="collective.quota"
          remove="true"
   />
+  <layer name="collective.quota.restapi"
+         remove="true"
+  />
 </layers>

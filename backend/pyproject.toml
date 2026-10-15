@@ -29,8 +29,10 @@ classifiers = [
 dependencies = [
     "Products.CMFPlone",
     "plone.api",
+    "plone.app.linkintegrity",
+    "plone.exportimport",
+    "plone.namedfile",
     "plone.restapi",
-    "plone.volto",
 ]
 
 [project.optional-dependencies]
@@ -177,9 +179,15 @@ ignore = [
 testpaths = ["tests"]
 
 [tool.coverage.run]
-source_pkgs = ["collective.quota", "tests"]
+source_pkgs = ["collective.quota"]
+source = ["tests"]
 branch = true
 parallel = true
 omit = [
   "src/collective/quota/locales/*.py",
 ]
+
+[tool.coverage.report]
+fail_under = 100
+show_missing = true
+skip_covered = false

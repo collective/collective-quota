@@ -301,10 +301,12 @@ Modify:
 - [ ] REST `IControlpanel` adapter with `sources`/`locked` in GET and locked-field rejection in PATCH
 - [ ] Document the variables in `backend/README.md` and add commented examples to `docker-compose.yml`
 - [ ] Manual check in a running site: Site Setup → Add-on Configuration → Quota; save values; rebuild and reset buttons; invariants shown as errors; start the instance with `COLLECTIVE_QUOTA_HARD_LIMIT_MB=100 COLLECTIVE_QUOTA_LOCK_SETTINGS=1` and confirm the field is read-only and REST PATCH is refused
+- [ ] `set_quota(soft_mb=0, hard_mb=0, policy="block_all", max_file_mb=10)` fixture in `tests/conftest.py` writing the four registry records (moved here from phase 1); switch `quota_env` to `collective.quota.settings.ENV_VARS` / `LOCK_VAR` instead of the `QUOTA_ENV_VARS` copy in `conftest.py`
 - [ ] `make i18n`; `make lint`; coverage 100 %
 
 ## Tests
 
+- [ ] `test_fixtures.py::test_set_quota_writes_all_records` (moved from phase 1)
 - [ ] `test_settings.py::test_records_default_to_none_after_install`
 - [ ] `test_settings.py::test_builtin_defaults_when_nothing_set` — `0`, `0`, `block_all`, `10 MB`; all sources `default`
 - [ ] `test_settings.py::test_get_settings_converts_mb_to_bytes`

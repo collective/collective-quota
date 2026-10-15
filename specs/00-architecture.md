@@ -473,6 +473,8 @@ backend/tests/                conftest.py + test modules per phase
 
 ## 10. Install, upgrade, uninstall
 
+- Profile dependencies: `plone.app.registry:default` and `plone.restapi:default` (a
+  plain Classic site does not install restapi on its own; see phase 1). No `plone.volto`.
 - Profile version starts at `1000`. Every schema/registry/catalog change bumps it and
   ships an upgrade step (`upgrades/`). `rebuild_usage()` is the reusable repair step.
 - Uninstall removes: both browser layers, index + column, registry records, configlet,

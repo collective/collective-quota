@@ -3,4 +3,7 @@
   <layer interface="collective.quota.interfaces.IBrowserLayer"
          name="collective.quota"
   />
+  <layer interface="collective.quota.interfaces.IQuotaRestapiLayer"
+         name="collective.quota.restapi"
+  />
 </layers>

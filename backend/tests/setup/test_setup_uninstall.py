@@ -12,8 +12,9 @@ class TestSetupUninstall:
         """Test if collective.quota is uninstalled."""
         assert installer.is_product_installed(PACKAGE_NAME) is False
 
-    def test_browserlayer_not_registered(self, browser_layers):
-        """Test that IBrowserLayer is not registered."""
-        from collective.quota.interfaces import IBrowserLayer
+    @pytest.mark.parametrize("name", ["IBrowserLayer", "IQuotaRestapiLayer"])
+    def test_browserlayer_not_registered(self, browser_layers, name):
+        """Test that both browser layers are removed."""
+        from collective.quota import interfaces
 
-        assert IBrowserLayer not in browser_layers
+        assert getattr(interfaces, name) not in browser_layers
