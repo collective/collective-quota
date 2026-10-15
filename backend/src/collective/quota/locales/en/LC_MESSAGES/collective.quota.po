@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2022-05-25 17:12+0000\n"
+"POT-Creation-Date: 2026-10-15 18:03+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -13,3 +13,212 @@ msgstr ""
 "Language-Name: English\n"
 "Preferred-Encodings: utf-8 latin1\n"
 "Domain: DOMAIN\n"
+
+#: collective/quota/controlpanels/quota.py:62
+msgid "${size} MB"
+msgstr ""
+
+#: collective/quota/vocabularies/policies.py:18
+msgid "Allow everything, only show warnings"
+msgstr ""
+
+#: collective/quota/vocabularies/policies.py:16
+msgid "Allow new items, block uploads that add bytes"
+msgstr ""
+
+#: collective/quota/vocabularies/policies.py:17
+msgid "Allow uploads up to a maximum file size"
+msgstr ""
+
+#: collective/quota/vocabularies/policies.py:15
+msgid "Block new items and any upload that adds bytes"
+msgstr ""
+
+#: collective/quota/profiles.zcml:23
+msgid "Collective Quota: Example content"
+msgstr ""
+
+#: collective/quota/profiles.zcml:14
+msgid "Collective Quota: Install"
+msgstr ""
+
+#: collective/quota/profiles.zcml:31
+msgid "Collective Quota: Uninstall"
+msgstr ""
+
+#: collective/quota/controlpanels/quota.py:40
+msgid "Control panel"
+msgstr ""
+
+#: collective/quota/profiles.zcml:23
+msgid "Create example content to showcase this addon."
+msgstr ""
+
+#: collective/quota/browser/templates/controlpanel.pt:33
+msgid "Current usage"
+msgstr ""
+
+#: collective/quota/controlpanels/quota.py:82
+msgid "Currently: ${value} (built-in default)."
+msgstr ""
+
+#: collective/quota/controlpanels/quota.py:70
+msgid "Currently: ${value} (from environment variable ${variable}, locked)."
+msgstr ""
+
+#: collective/quota/controlpanels/quota.py:75
+msgid "Currently: ${value} (from environment variable ${variable}; a value saved here takes precedence)."
+msgstr ""
+
+#: collective/quota/controlpanels/quota.py:81
+msgid "Currently: ${value} (set in this control panel)."
+msgstr ""
+
+#: collective/quota/controlpanels/quota.py:43
+msgid "Default"
+msgstr ""
+
+#: collective/quota/controlpanels/quota.py:41
+msgid "Environment"
+msgstr ""
+
+#: collective/quota/controlpanels/quota.py:42
+msgid "Environment (locked)"
+msgstr ""
+
+#: collective/quota/browser/templates/controlpanel.pt:128
+msgid "Environment variable"
+msgstr ""
+
+#: collective/quota/interfaces.py:40
+msgid "Hard limit (MB)"
+msgstr ""
+
+#: collective/quota/browser/templates/controlpanel.pt:76
+msgid "Hard limit:"
+msgstr ""
+
+#: collective/quota/interfaces.py:52
+msgid "Leave empty to use the environment variable or the default."
+msgstr ""
+
+#: collective/quota/controlpanels/quota.py:89
+msgid "Limits apply to the bytes stored in file and image fields across the whole site."
+msgstr ""
+
+#: collective/quota/interfaces.py:58
+msgid "Maximum file size over the limit (MB)"
+msgstr ""
+
+#: collective/quota/interfaces.py:59
+msgid "Only used by the policy \"Allow uploads up to a maximum file size\". Leave empty to use the environment variable or the default."
+msgstr ""
+
+#: collective/quota/interfaces.py:51
+msgid "Policy when the hard limit is reached"
+msgstr ""
+
+#: collective/quota/browser/templates/controlpanel.pt:83
+msgid "Policy:"
+msgstr ""
+
+#: collective/quota/controlpanels/restapi.py:49
+#: collective/quota/profiles/default/controlpanel.xml
+msgid "Quota"
+msgstr ""
+
+#: collective/quota/controlpanels/quota.py:88
+msgid "Quota settings"
+msgstr ""
+
+#: collective/quota/browser/templates/controlpanel.pt:163
+msgid "Rebuild usage data"
+msgstr ""
+
+#: collective/quota/browser/templates/controlpanel.pt:166
+msgid "Recomputes the size of every item and the site total. It walks the whole catalog, so it can take a while on big sites. Use it if the total looks wrong."
+msgstr ""
+
+#: collective/quota/controlpanels/quota.py:149
+msgid "Reset to defaults"
+msgstr ""
+
+#: collective/quota/browser/templates/controlpanel.pt:95
+msgid "Review biggest items"
+msgstr ""
+
+#: collective/quota/settings.py:53
+msgid "Set a maximum file size greater than 0 for this policy."
+msgstr ""
+
+#: collective/quota/browser/templates/controlpanel.pt:125
+msgid "Setting"
+msgstr ""
+
+#: collective/quota/controlpanels/restapi.py:94
+msgid "Setting ${name} is locked by environment variable ${variable}"
+msgstr ""
+
+#: collective/quota/browser/templates/controlpanel.pt:112
+msgid "Settings defined by environment variables are locked (COLLECTIVE_QUOTA_LOCK_SETTINGS is on). Only the server operator can change them."
+msgstr ""
+
+#: collective/quota/controlpanels/quota.py:156
+msgid "Settings reset. Environment variables or built-in defaults apply now."
+msgstr ""
+
+#: collective/quota/interfaces.py:29
+msgid "Soft limit (MB)"
+msgstr ""
+
+#: collective/quota/browser/templates/controlpanel.pt:69
+msgid "Soft limit:"
+msgstr ""
+
+#: collective/quota/browser/templates/controlpanel.pt:127
+msgid "Source"
+msgstr ""
+
+#: collective/quota/settings.py:52
+msgid "The soft limit cannot be higher than the hard limit."
+msgstr ""
+
+#: collective/quota/profiles.zcml:14
+msgid "This product allows to configure a quota limit for Plone sites. It also provides a convenient view for quickly finding the biggest items in case you need to delete"
+msgstr ""
+
+#: collective/quota/browser/templates/controlpanel.pt:37
+msgid "Total:"
+msgstr ""
+
+#: collective/quota/profiles.zcml:31
+msgid "Uninstall Collective Quota setup."
+msgstr ""
+
+#: collective/quota/browser/rebuild.py:24
+msgid "Usage data rebuilt: ${count} items, ${total} in total."
+msgstr ""
+
+#: collective/quota/browser/templates/controlpanel.pt:126
+msgid "Value"
+msgstr ""
+
+#: collective/quota/interfaces.py:41
+msgid "When a save would push total usage above this value, the policy below applies. 0 disables enforcement. Leave empty to use the environment variable or the default."
+msgstr ""
+
+#: collective/quota/interfaces.py:30
+msgid "When total usage reaches this value, editors see a warning. 0 disables the warning. Leave empty to use the environment variable or the default."
+msgstr ""
+
+#: collective/quota/browser/templates/controlpanel.pt:109
+msgid "Where the values come from"
+msgstr ""
+
+#: collective/quota/browser/templates/controlpanel.pt:71
+msgid "disabled"
+msgstr ""
+
+#: collective/quota/browser/templates/controlpanel.pt:42
+msgid "of"
+msgstr ""

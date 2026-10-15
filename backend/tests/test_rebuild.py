@@ -7,15 +7,11 @@ from plone import api
 from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
 from plone.protect.authenticator import createToken
-from Products.Five.browser import BrowserView
 from Products.statusmessages.interfaces import IStatusMessage
 from zExceptions import Forbidden
 from zExceptions import MethodNotAllowed
 from zExceptions import Unauthorized
-from zope.component import getSiteManager
 from zope.interface import alsoProvides
-from zope.interface import Interface
-from zope.publisher.interfaces.browser import IBrowserRequest
 
 import importlib.util
 import pytest
@@ -55,7 +51,7 @@ class TestRebuildView:
         with pytest.raises(Forbidden):
             rebuild_view(token=False)()
 
-    def test_post_rebuilds_and_redirects_to_portal(
+    def test_post_rebuilds_and_redirects_to_controlpanel(
         self, portal, rebuild_view, http_request, make_file, manager
     ):
         make_file(portal, "a", 2048)
@@ -63,30 +59,12 @@ class TestRebuildView:
         get_index(portal)._total = Length(1)
         rebuild_view()()
         assert get_index(portal).total() == 2048
-        assert http_request.response.getHeader("location") == portal.absolute_url()
+        location = http_request.response.getHeader("location")
+        assert location == f"{portal.absolute_url()}/@@quota-controlpanel"
         (message,) = IStatusMessage(http_request).show()
         assert (
             message.message == "Usage data rebuilt: 2 items, 2.0 KB in total."
         )  # site root + file
-
-    def test_redirects_to_controlpanel_when_available(
-        self, portal, rebuild_view, http_request, manager
-    ):
-        sm = getSiteManager()
-        sm.registerAdapter(
-            BrowserView, (Interface, IBrowserRequest), Interface, "quota-controlpanel"
-        )
-        try:
-            rebuild_view()()
-        finally:
-            sm.unregisterAdapter(
-                BrowserView,
-                (Interface, IBrowserRequest),
-                Interface,
-                "quota-controlpanel",
-            )
-        location = http_request.response.getHeader("location")
-        assert location == f"{portal.absolute_url()}/@@quota-controlpanel"
 
 
 class TestRebuildPermission:

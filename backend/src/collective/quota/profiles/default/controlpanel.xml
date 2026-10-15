@@ -1,7 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <object xmlns:i18n="http://xml.zope.org/namespaces/i18n"
         name="portal_controlpanel"
+        i18n:domain="collective.quota"
 >
+
+  <configlet action_id="collective-quota"
+             appId="collective.quota"
+             category="Products"
+             condition_expr=""
+             icon_expr="string:device-hdd"
+             title="Quota"
+             url_expr="string:${portal_url}/@@quota-controlpanel"
+             visible="True"
+             i18n:attributes="title"
+  >
+    <permission>collective.quota: Manage Quota Settings</permission>
+  </configlet>
 
   <!-- -*- extra stuff goes here -*- -->
 

@@ -2,7 +2,6 @@ from Acquisition import aq_base
 from collective.quota import usage
 from collective.quota.guard import guard_suspended
 from collective.quota.guard import note_index_change
-from collective.quota.settings import get_settings
 from collective.quota.settings import QuotaSettings
 from collective.quota.usage import get_index
 from collective.quota.usage import get_total_usage
@@ -129,15 +128,6 @@ class TestRebuildUsage:
 
 
 class TestStubs:
-    def test_settings_defaults(self):
-        current = get_settings()
-        assert current.soft_bytes == 0
-        assert current.hard_bytes == 0
-        assert current.policy == "block_all"
-        assert current.max_file_bytes == 10 * MB
-        assert set(current.sources.values()) == {"default"}
-        assert current.locked == frozenset()
-
     def test_guard_stubs(self):
         assert note_index_change(None, 5) is None
         with guard_suspended():

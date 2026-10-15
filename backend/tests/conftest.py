@@ -1,3 +1,7 @@
+from collective.quota.settings import ENV_VARS
+from collective.quota.settings import FIELDS
+from collective.quota.settings import LOCK_VAR
+from collective.quota.settings import set_registry_value
 from collective.quota.testing import ACCEPTANCE_TESTING
 from collective.quota.testing import FUNCTIONAL_TESTING
 from collective.quota.testing import INTEGRATION_TESTING
@@ -10,8 +14,10 @@ from plone.app.testing import TEST_USER_NAME
 from plone.app.testing import TEST_USER_PASSWORD
 from plone.namedfile.file import NamedBlobFile
 from plone.namedfile.file import NamedBlobImage
+from plone.registry.interfaces import IRegistry
 from plone.testing.zope import Browser
 from pytest_plone import fixtures_factory
+from zope.component import getUtility
 
 import base64
 import pytest
@@ -38,13 +44,13 @@ PNG_1X1 = base64.b64decode(
     "60e6kgAAAABJRU5ErkJggg=="
 )
 
-# Environment variables read by collective.quota.settings (see specs, §2).
+# quota_env argument -> environment variable read by collective.quota.settings.
 QUOTA_ENV_VARS = {
-    "soft": "COLLECTIVE_QUOTA_SOFT_LIMIT_MB",
-    "hard": "COLLECTIVE_QUOTA_HARD_LIMIT_MB",
-    "policy": "COLLECTIVE_QUOTA_OVER_LIMIT_POLICY",
-    "max_file": "COLLECTIVE_QUOTA_MAX_FILE_SIZE_MB",
-    "lock": "COLLECTIVE_QUOTA_LOCK_SETTINGS",
+    "soft": ENV_VARS["soft_limit_mb"],
+    "hard": ENV_VARS["hard_limit_mb"],
+    "policy": ENV_VARS["over_limit_policy"],
+    "max_file": ENV_VARS["max_file_size_mb"],
+    "lock": LOCK_VAR,
 }
 
 # Blob field used by make_file for each content type.
@@ -82,6 +88,48 @@ def quota_env(monkeypatch):
 
 
 @pytest.fixture
+def set_quota():
+    """set_quota(soft_mb=0, hard_mb=0, policy="block_all", max_file_mb=10)
+
+    Writes the four registry records of the current site (``None`` leaves a
+    record unset), so use it with ``portal`` or ``functional_portal``. Commit
+    yourself when a functional test needs the values on the server.
+    """
+
+    def func(soft_mb=0, hard_mb=0, policy="block_all", max_file_mb=10):
+        values = {
+            "soft_limit_mb": soft_mb,
+            "hard_limit_mb": hard_mb,
+            "over_limit_policy": policy,
+            "max_file_size_mb": max_file_mb,
+        }
+        for name, value in values.items():
+            set_registry_value(name, value)
+
+    return func
+
+
+@pytest.fixture
+def stored_settings(functional_portal):
+    """stored_settings() -> {field: registry value} as committed by the server.
+
+    Reads on a fresh ZODB connection: the test's own connection does not see
+    commits made by the HTTP server thread used by ``api_session``.
+    """
+
+    def func():
+        db = functional_portal._p_jar.db()
+        conn = db.open(transaction_manager=transaction.TransactionManager())
+        try:
+            registry = conn.get(getUtility(IRegistry)._p_oid)
+            return {name: registry.get(f"collective.quota.{name}") for name in FIELDS}
+        finally:
+            conn.close()
+
+    return func
+
+
+@pytest.fixture
 def make_blob():
     """make_blob(size_bytes, filename="f.bin", image=False) -> NamedBlobFile/Image
 
@@ -101,7 +149,7 @@ def make_blob():
 
 
 @pytest.fixture
-def make_file(portal, make_blob):
+def make_file(make_blob):
     """make_file(container, id, size_bytes, type="File") -> created object
 
     Uses plone.api on purpose (no form or policy validation), so tests can push

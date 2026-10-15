@@ -3,6 +3,10 @@
           i18n:domain="collective.quota"
 >
 
+  <records interface="collective.quota.interfaces.IQuotaSettings"
+           prefix="collective.quota"
+  />
+
   <!-- -*- extra stuff goes here -*- -->
 
 </registry>

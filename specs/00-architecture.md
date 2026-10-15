@@ -118,7 +118,7 @@ warning and treated as unset. Variables are read from `os.environ` on every
 |---|---|
 | `get_total_usage(portal=None) -> int` | `collective.quota.usage` |
 | `get_settings() -> QuotaSettings` | `collective.quota.settings` (re-exported by `collective.quota.usage`) |
-| `read_env() -> EnvSettings`, `is_locked(name) -> bool`, `ENV_VARS` | `collective.quota.settings` |
+| `read_env() -> EnvSettings`, `is_locked(name) -> bool`, `ENV_VARS`, `LOCK_VAR`, `resolve_all`, `invariant_errors`, `set_registry_value` | `collective.quota.settings` |
 | `record_approved_bytes(n)`, `record_approved_add()`, `guard_suspended()` | `collective.quota.guard` |
 | `get_usage_info(portal=None) -> UsageInfo` | `collective.quota.usage` |
 | `rebuild_usage(portal, update_metadata=True) -> int` | `collective.quota.usage` |
@@ -205,9 +205,17 @@ Consequences:
 - `QuotaSettings` (frozen dataclass) carries `soft_bytes`, `hard_bytes`, `policy`,
   `max_file_bytes`, plus `sources: dict[str, str]` and `locked: frozenset[str]` so UIs
   can explain where each value comes from. `0` MB means "disabled" for soft and hard.
-- Invariants (soft ≤ hard, max file size for `limit_file_size`) are checked on the
-  **effective** values in the control panel. Environment values that violate them are
-  logged as warnings and still applied; the admin owns the environment.
+- Invariants (soft ≤ hard when both are > 0, max file size > 0 for `limit_file_size`)
+  are checked on the **effective** values in the control panel and the REST PATCH.
+  They only reject a save when a violated invariant involves a value stored in the
+  control panel; conflicts coming purely from the environment are logged once as
+  warnings by `get_settings()` and still applied (the operator owns the environment).
+- `QuotaSettings.values` also carries the effective value of each field (MB / policy
+  token) for display.
+- REST `@controlpanels/collective-quota`: `data` holds the **stored** values (locked
+  fields show their environment value and are `readonly` in the schema), plus
+  top-level `effective`, `sources` and `locked`. PATCH refuses a locked field sent with
+  a different value (400) and ignores it when sent with its locked value.
 
 ## 4. Policy semantics
 

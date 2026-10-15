@@ -8,7 +8,6 @@ from plone.protect import CheckAuthenticator
 from Products.Five.browser import BrowserView
 from Products.statusmessages.interfaces import IStatusMessage
 from zExceptions import MethodNotAllowed
-from zope.component import queryMultiAdapter
 
 
 CONTROLPANEL_VIEW = "quota-controlpanel"
@@ -28,7 +27,6 @@ class QuotaRebuildView(BrowserView):
             ),
             type="info",
         )
-        target = self.context.absolute_url()
-        if queryMultiAdapter((self.context, self.request), name=CONTROLPANEL_VIEW):
-            target = f"{target}/@@{CONTROLPANEL_VIEW}"
-        return self.request.response.redirect(target)
+        return self.request.response.redirect(
+            f"{self.context.absolute_url()}/@@{CONTROLPANEL_VIEW}"
+        )

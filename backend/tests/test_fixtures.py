@@ -102,3 +102,30 @@ class TestFunctionalFixtures:
     def test_api_session(self, api_session, role, status):
         response = api_session(role).get(f"/@users/{TEST_USER_ID}")
         assert response.status_code == status
+
+
+class TestSetQuota:
+    def test_set_quota_writes_all_records(self, portal, set_quota):
+        set_quota(soft_mb=1, hard_mb=2, policy="allow", max_file_mb=3)
+        values = {
+            name: api.portal.get_registry_record(f"collective.quota.{name}")
+            for name in (
+                "soft_limit_mb",
+                "hard_limit_mb",
+                "over_limit_policy",
+                "max_file_size_mb",
+            )
+        }
+        assert values == {
+            "soft_limit_mb": 1,
+            "hard_limit_mb": 2,
+            "over_limit_policy": "allow",
+            "max_file_size_mb": 3,
+        }
+
+    def test_set_quota_defaults(self, portal, set_quota):
+        set_quota()
+        assert api.portal.get_registry_record("collective.quota.max_file_size_mb") == 10
+        assert api.portal.get_registry_record("collective.quota.over_limit_policy") == (
+            "block_all"
+        )

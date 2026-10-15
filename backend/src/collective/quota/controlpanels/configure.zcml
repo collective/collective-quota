@@ -5,6 +5,23 @@
     i18n_domain="collective.quota"
     >
 
+  <browser:page
+      name="quota-controlpanel"
+      for="plone.base.interfaces.IPloneSiteRoot"
+      class=".quota.QuotaControlPanel"
+      permission="collective.quota.ManageSettings"
+      layer="..interfaces.IBrowserLayer"
+      />
+
+  <adapter
+      factory=".restapi.QuotaConfigletPanel"
+      provides="plone.restapi.controlpanels.interfaces.IControlpanel"
+      name="collective-quota"
+      />
+
+  <adapter factory=".restapi.QuotaControlpanelSerializeToJson" />
+  <adapter factory=".restapi.QuotaControlpanelDeserializeFromJson" />
+
   <!-- -*- extra stuff goes here -*- -->
 
 </configure>

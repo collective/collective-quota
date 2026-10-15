@@ -1,0 +1,189 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      lang="en"
+      metal:use-macro="context/@@prefs_main_template/macros/master"
+      xml:lang="en"
+      i18n:domain="collective.quota"
+>
+
+  <body>
+    <tal:main metal:fill-slot="prefs_configlet_main">
+
+      <header>
+        <h1 tal:content="view/label">Quota settings</h1>
+        <p class="lead"
+           tal:condition="view/description | nothing"
+           tal:content="view/description"
+        >Description</p>
+      </header>
+
+      <div metal:use-macro="context/@@global_statusmessage/macros/portal_message">
+        Portal status message
+      </div>
+
+      <section class="card mb-4"
+               id="quota-usage"
+               tal:define="
+                 summary view/usage_summary;
+               "
+      >
+        <div class="card-body">
+          <h2 class="card-title h5"
+              i18n:translate=""
+          >Current usage</h2>
+          <p class="mb-2">
+            <span i18n:translate="">Total:</span>
+            <strong id="quota-usage-total"
+                    tal:content="summary/total"
+            >12 MB</strong>
+            <tal:hard condition="summary/hard">
+              <span i18n:translate="">of</span>
+              <strong id="quota-usage-hard"
+                      tal:content="summary/hard"
+              >100 MB</strong>
+              (<span tal:replace="summary/percent">12</span>%)
+            </tal:hard>
+          </p>
+          <div class="progress mb-2"
+               aria-valuemax="100"
+               aria-valuemin="0"
+               role="progressbar"
+               tal:condition="summary/hard"
+               tal:attributes="
+                 aria-valuenow summary/width;
+               "
+          >
+            <div class="progress-bar"
+                 id="quota-usage-bar"
+                 tal:attributes="
+                   class string:progress-bar ${summary/bar_class};
+                   style string:width: ${summary/width}%;
+                   data-level summary/level;
+                 "
+            ></div>
+          </div>
+          <ul class="list-unstyled mb-0">
+            <li>
+              <span i18n:translate="">Soft limit:</span>
+              <span tal:content="summary/soft">80 MB</span>
+              <span tal:condition="not:summary/soft"
+                    i18n:translate=""
+              >disabled</span>
+            </li>
+            <li>
+              <span i18n:translate="">Hard limit:</span>
+              <span tal:content="summary/hard">100 MB</span>
+              <span tal:condition="not:summary/hard"
+                    i18n:translate=""
+              >disabled</span>
+            </li>
+            <li>
+              <span i18n:translate="">Policy:</span>
+              <span id="quota-usage-policy"
+                    tal:content="summary/policy"
+              >Block</span>
+            </li>
+          </ul>
+          <p class="mt-3 mb-0"
+             tal:define="
+               usage_url view/usage_view_url;
+             "
+             tal:condition="usage_url"
+          >
+            <a id="quota-usage-link"
+               href="#"
+               tal:attributes="
+                 href usage_url;
+               "
+               i18n:translate=""
+            >Review biggest items</a>
+          </p>
+        </div>
+      </section>
+
+      <section class="mb-4"
+               id="quota-sources"
+      >
+        <h2 class="h5"
+            i18n:translate=""
+        >Where the values come from</h2>
+        <div class="alert alert-info"
+             id="quota-lock-alert"
+             role="status"
+             tal:condition="view/lock_enabled"
+             i18n:translate=""
+        >
+          Settings defined by environment variables are locked
+          (COLLECTIVE_QUOTA_LOCK_SETTINGS is on). Only the server operator can
+          change them.
+        </div>
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th i18n:translate="">Setting</th>
+              <th i18n:translate="">Value</th>
+              <th i18n:translate="">Source</th>
+              <th i18n:translate="">Environment variable</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr tal:repeat="row view/source_rows"
+                tal:attributes="
+                  id string:quota-source-${row/name};
+                  data-source row/source;
+                "
+            >
+              <td tal:content="row/title">Hard limit</td>
+              <td tal:content="row/value">100 MB</td>
+              <td>
+                <span tal:content="row/source_label"
+                      tal:attributes="
+                        class string:badge ${row/badge_class};
+                      "
+                >Default</span>
+              </td>
+              <td><code tal:content="row/variable">COLLECTIVE_QUOTA_HARD_LIMIT_MB</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <div id="content-core">
+        <div id="layout-contents">
+          <span tal:replace="structure view/contents"></span>
+        </div>
+      </div>
+
+      <section class="mt-5"
+               id="quota-rebuild"
+               tal:condition="view/can_rebuild"
+      >
+        <h2 class="h5"
+            i18n:translate=""
+        >Rebuild usage data</h2>
+        <p class="form-text"
+           i18n:translate=""
+        >
+          Recomputes the size of every item and the site total. It walks the
+          whole catalog, so it can take a while on big sites. Use it if the
+          total looks wrong.
+        </p>
+        <form method="post"
+              tal:attributes="
+                action view/rebuild_url;
+              "
+        >
+          <span tal:replace="structure context/@@authenticator/authenticator"></span>
+          <button class="btn btn-secondary"
+                  name="form.button.rebuild"
+                  type="submit"
+                  i18n:translate=""
+          >Rebuild usage data</button>
+        </form>
+      </section>
+
+    </tal:main>
+  </body>
+</html>

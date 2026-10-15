@@ -23,3 +23,14 @@ class TestSetupUninstall:
         catalog = portal.portal_catalog
         assert "blob_size" not in catalog.indexes()
         assert "blob_size" not in catalog.schema()
+
+    def test_configlet_removed(self, portal):
+        ids = [a.getId() for a in portal.portal_controlpanel.listActions()]
+        assert "collective-quota" not in ids
+
+    def test_registry_records_removed(self, portal):
+        from plone.registry.interfaces import IRegistry
+        from zope.component import getUtility
+
+        registry = getUtility(IRegistry)
+        assert not [k for k in registry.records if k.startswith("collective.quota.")]

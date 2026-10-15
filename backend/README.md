@@ -6,6 +6,55 @@ This product allows to configure a quota limit for Plone sites. It also provides
 
 TODO: List our awesome features
 
+## Configuration
+
+Site administrators configure the add-on in **Site Setup → Add-on Configuration →
+Quota** (`@@quota-controlpanel`). The page shows the current usage, where every
+value comes from, and has buttons to rebuild the usage data and to reset the
+settings. The same settings are available to REST clients at
+`@controlpanels/collective-quota`.
+
+| Setting | Default | Meaning |
+|---|---|---|
+| Soft limit (MB) | `0` (disabled) | Editors see a warning when total usage reaches it |
+| Hard limit (MB) | `0` (disabled) | Saves that would push usage above it follow the policy |
+| Policy when the hard limit is reached | `block_all` | `block_all`, `block_files`, `limit_file_size` or `allow` |
+| Maximum file size over the limit (MB) | `10` | Only used by `limit_file_size` |
+
+### Environment variables
+
+Every setting can also come from an environment variable of the Zope process
+(`environment:` in `docker-compose.yml`, the systemd unit, or the shell that runs
+`make start`). No change to `zope.conf` or `instance.yaml` is needed.
+
+| Variable | Setting | Accepted values |
+|---|---|---|
+| `COLLECTIVE_QUOTA_SOFT_LIMIT_MB` | Soft limit | integer ≥ 0 |
+| `COLLECTIVE_QUOTA_HARD_LIMIT_MB` | Hard limit | integer ≥ 0 |
+| `COLLECTIVE_QUOTA_OVER_LIMIT_POLICY` | Policy | `block_all`, `block_files`, `limit_file_size`, `allow` |
+| `COLLECTIVE_QUOTA_MAX_FILE_SIZE_MB` | Maximum file size | integer ≥ 0 |
+| `COLLECTIVE_QUOTA_LOCK_SETTINGS` | Lock flag | `1`, `true`, `yes`, `on` (any case) lock; anything else does not |
+
+Each value is resolved in this order:
+
+1. With `COLLECTIVE_QUOTA_LOCK_SETTINGS` on, a variable that is set wins and is
+   read-only in the control panel and over REST.
+2. A value saved in the control panel.
+3. The environment variable.
+4. The built-in default.
+
+Without the lock flag, environment variables act as defaults that the control panel
+can override; "Reset to defaults" clears the saved values so they apply again.
+Empty variables are ignored. Invalid values are logged once as a warning and
+ignored.
+
+```shell
+COLLECTIVE_QUOTA_HARD_LIMIT_MB=5000 \
+COLLECTIVE_QUOTA_SOFT_LIMIT_MB=4500 \
+COLLECTIVE_QUOTA_LOCK_SETTINGS=1 \
+make start
+```
+
 ## Installation
 
 Install collective.quota with uv.

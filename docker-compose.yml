@@ -56,6 +56,12 @@ services:
         - PLONE_VERSION=${PLONE_VERSION}
     environment:
       ZEO_ADDRESS: "zeo:8100"
+      # collective.quota settings (see backend/README.md, "Environment variables")
+      # COLLECTIVE_QUOTA_SOFT_LIMIT_MB: "4500"
+      # COLLECTIVE_QUOTA_HARD_LIMIT_MB: "5000"
+      # COLLECTIVE_QUOTA_OVER_LIMIT_POLICY: "block_all"
+      # COLLECTIVE_QUOTA_MAX_FILE_SIZE_MB: "10"
+      # COLLECTIVE_QUOTA_LOCK_SETTINGS: "1"
     depends_on:
       - zeo
     labels:

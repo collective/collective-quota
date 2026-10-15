@@ -1,5 +1,10 @@
 <configure xmlns="http://namespaces.zope.org/zope">
 
+  <utility
+      name="collective.quota.OverLimitPolicies"
+      component=".policies.over_limit_policies"
+      />
+
   <!-- -*- extra stuff goes here -*- -->
 
 </configure>

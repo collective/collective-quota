@@ -34,3 +34,7 @@ class TestSetupInstall:
         catalog = portal.portal_catalog
         assert isinstance(catalog._catalog.getIndex("blob_size"), BlobSizeIndex)
         assert "blob_size" in catalog.schema()
+
+    def test_configlet(self, portal):
+        ids = [a.getId() for a in portal.portal_controlpanel.listActions()]
+        assert "collective-quota" in ids
