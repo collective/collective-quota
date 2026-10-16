@@ -133,6 +133,33 @@ Generate translation files for Plone and Volto with ease:
 make i18n
 ```
 
+## Developing with Claude 🤖
+
+This product was built with [Claude](https://claude.ai) as a development assistant, following a spec-first workflow. Use the same workflow for new features.
+
+### Specs first, with Claude Fable 5.1
+
+The [`specs/`](specs/) folder holds the plan for everything this repository builds, and in which order. Draft and revise specs with **Claude Fable 5.1** (`claude-fable-5-1`):
+
+- [`specs/00-architecture.md`](specs/00-architecture.md) fixes every name (permissions, views, registry keys, REST endpoints, Volto components), the quota policy, and the product rules that hold across both halves.
+- Each phase gets its own file (`specs/phase-NN-*.md`) with a goal, scope, design, list of files, tasks and tests as checkboxes, acceptance criteria and a `Status` line.
+- [`specs/README.md`](specs/README.md) lists the phases with their status and the project conventions (commands, 100 % backend coverage, 90 % frontend coverage, i18n, changelog fragments, no Docker images).
+
+Settle the open design questions in the spec before any code is written.
+
+### Implementation, with Claude Opus 5.5
+
+Implement phases one at a time, in order, with **Claude Opus 5.5** (`claude-opus-5-5`) in [Claude Code](https://claude.com/claude-code), working from the specs:
+
+- Read `specs/00-architecture.md` and the phase file first; they are the contract.
+- Check off tasks and tests as they land, and move the phase `Status` from `Not started` to `In progress` to `Done`. A phase is `Done` only when every task and test is checked and the acceptance criteria hold.
+- When the code shows that a spec is wrong (a library behaves differently, a name does not exist), fix the spec in the same commit, so the documents never lag behind the code.
+- Before every commit, run the gates: `make lint` and `make test-coverage` in `backend/`, `make lint` and `make test` in `frontend/`, and the Cypress suite for user-visible flows.
+
+### A person stays in charge
+
+Claude drafts and implements; a developer reviews every spec and commit, runs the manual QA steps listed in each phase file, and decides what is released. Findings from manual testing go back into the specs and the tests, so they are not lost.
+
 ## Credits and acknowledgements 🙏
 
 Generated using [Cookieplone (2.0.2)](https://github.com/plone/cookieplone) and [cookieplone-templates (19d0792)](https://github.com/plone/cookieplone-templates/commit/19d07923b43f38bc80271aab3d4ea54388fa9d23) on 2026-10-15 16:57:51.018171. A special thanks to all contributors and supporters!
