@@ -90,6 +90,19 @@ Each use is logged. Prefer raising the hard limit temporarily (for example with
 `COLLECTIVE_QUOTA_HARD_LIMIT_MB`) when possible. `guard_suspended()` is not reachable
 from the web.
 
+### Disk usage view
+
+"Disk usage" in the user menu opens `@@quota-usage` on the site root. Managers, Site
+Administrators, Editors, Contributors and Reviewers can open it (permission
+`collective.quota: View Disk Usage`); Members and anonymous visitors cannot.
+
+The page shows the current usage, the limits and the policy, then the 10, 25, 50 or
+100 biggest items the user can see, with links to view or edit each one. Tick
+several items and click "Delete selected" (or use an item's "Delete" link): a
+confirmation page lists them with their total size and Plone's usual link-integrity
+warnings. Items you may not delete, or that another user has locked, are skipped and
+reported. Deleting always works, even over the hard limit.
+
 ## Installation
 
 Install collective.quota with uv.

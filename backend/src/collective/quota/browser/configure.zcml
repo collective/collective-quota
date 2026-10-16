@@ -13,6 +13,22 @@
       layer="collective.quota.interfaces.IBrowserLayer"
       />
 
+  <browser:page
+      name="quota-usage"
+      for="plone.base.interfaces.IPloneSiteRoot"
+      class=".usage.DiskUsageView"
+      permission="collective.quota.ViewDiskUsage"
+      layer="collective.quota.interfaces.IBrowserLayer"
+      />
+
+  <browser:page
+      name="quota-delete"
+      for="plone.base.interfaces.IPloneSiteRoot"
+      class=".delete.QuotaDeleteView"
+      permission="collective.quota.ViewDiskUsage"
+      layer="collective.quota.interfaces.IBrowserLayer"
+      />
+
   <!-- Hook B: block_all refuses new items in Dexterity add forms. -->
   <adapter factory=".addform_guard.QuotaAddFormValidator" />
 

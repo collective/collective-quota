@@ -294,8 +294,11 @@ class TestUsageCard:
         transaction.commit()
         assert 'id="quota-usage-total">0 KB<' in panel().contents
 
-    def test_usage_link_only_when_view_exists(self, panel):
-        assert 'id="quota-usage-link"' not in panel().contents
+    def test_usage_link_points_to_usage_view(self, panel, functional_portal):
+        test_browser = panel()
+        assert test_browser.getLink(id="quota-usage-link").url == (
+            f"{functional_portal.absolute_url()}/@@quota-usage"
+        )
 
 
 class TestRebuildButton:
@@ -339,19 +342,3 @@ class TestFormUnit:
         _data, errors = form.extractData(setErrors=False)
         assert [error.message for error in errors] == [SOFT_ABOVE_HARD]
         assert form.widgets.errors == ()
-
-    def test_usage_link_when_view_exists(self, portal, http_request):
-        from collective.quota.controlpanels.quota import QuotaControlPanel
-        from Products.Five.browser import BrowserView
-        from zope.component import getSiteManager
-        from zope.interface import Interface
-        from zope.publisher.interfaces.browser import IBrowserRequest
-
-        sm = getSiteManager()
-        args = (BrowserView, (Interface, IBrowserRequest), Interface, "quota-usage")
-        sm.registerAdapter(*args)
-        try:
-            url = QuotaControlPanel(portal, http_request).usage_view_url()
-        finally:
-            sm.unregisterAdapter(*args)
-        assert url == f"{portal.absolute_url()}/@@quota-usage"

@@ -1,0 +1,126 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      lang="en"
+      metal:use-macro="context/main_template/macros/master"
+      xml:lang="en"
+      i18n:domain="collective.quota"
+>
+
+  <body>
+    <metal:main fill-slot="main"
+                tal:define="
+                  items view/items;
+                  skipped view/skipped;
+                "
+    >
+
+      <h1 class="documentFirstHeading"
+          i18n:translate=""
+      >Delete selected items</h1>
+
+      <tal:items condition="items">
+        <p id="quota-delete-question"
+           i18n:translate=""
+        >Do you really want to delete the following
+          <span tal:replace="python:len(items)"
+                i18n:name="count"
+          >2</span>
+          items (<span tal:replace="view/total_size"
+                i18n:name="size"
+          >12 MB</span>
+          in total)?</p>
+
+        <table class="table table-sm"
+               id="quota-delete-items"
+        >
+          <thead>
+            <tr>
+              <th i18n:translate="">Title</th>
+              <th i18n:translate="">Type</th>
+              <th class="text-end"
+                  i18n:translate=""
+              >Size</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr tal:repeat="item items">
+              <td><a href="#"
+                   tal:content="item/title"
+                   tal:attributes="
+                     href item/url;
+                   "
+                >Title</a></td>
+              <td tal:content="item/type_title">File</td>
+              <td class="text-end text-nowrap"
+                  tal:content="item/size_human"
+                  tal:attributes="
+                    title string:${item/size} bytes;
+                  "
+              >1.2 MB</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="alert alert-warning"
+             id="quota-delete-breaches"
+             tal:define="
+               breaches view/breaches_html;
+             "
+             tal:condition="breaches"
+             tal:content="structure breaches"
+        >Potential link breakage</div>
+      </tal:items>
+
+      <div class="alert alert-info"
+           id="quota-delete-skipped"
+           tal:condition="skipped"
+      >
+        <p i18n:translate="">The following items will not be deleted:</p>
+        <ul class="mb-0">
+          <li tal:repeat="item skipped">
+            <a href="#"
+               tal:content="item/title"
+               tal:attributes="
+                 href item/url;
+               "
+            >Title</a>
+            (<span tal:replace="item/reason">you are not allowed to delete it</span>)
+          </li>
+        </ul>
+      </div>
+
+      <p tal:condition="python:not items and not skipped"
+         i18n:translate=""
+      >None of the selected items exist any more.</p>
+
+      <form method="post"
+            tal:attributes="
+              action string:${context/absolute_url}/@@quota-delete;
+            "
+      >
+        <span tal:replace="structure context/@@authenticator/authenticator"></span>
+        <input name="uids:list"
+               type="hidden"
+               tal:repeat="item items"
+               tal:attributes="
+                 value item/uid;
+               "
+        />
+        <button class="btn btn-danger"
+                name="form.button.confirm"
+                type="submit"
+                tal:condition="items"
+                i18n:translate=""
+        >Delete</button>
+        <button class="btn btn-secondary"
+                name="form.button.cancel"
+                type="submit"
+                i18n:translate=""
+        >Cancel</button>
+      </form>
+
+    </metal:main>
+  </body>
+</html>

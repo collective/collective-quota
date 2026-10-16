@@ -76,7 +76,9 @@ class QuotaWarningViewlet(ViewletBase):
         return self.index() if self.available else ""
 ```
 
-Messages (domain `collective.quota`):
+Messages (domain `collective.quota`). Already implemented in phase 5 as
+`collective.quota.browser.summary.level_message(info, settings)` (plus
+`ALERT_CLASSES`), which `@@quota-usage` renders in its alert; the viewlet calls it too:
 
 | level | text |
 |---|---|

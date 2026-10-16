@@ -1,6 +1,7 @@
 """Classic control panel: ``@@quota-controlpanel``."""
 
 from collective.quota import _
+from collective.quota.browser.summary import usage_summary
 from collective.quota.interfaces import IQuotaSettings
 from collective.quota.settings import ENV_VARS
 from collective.quota.settings import FIELDS
@@ -17,9 +18,6 @@ from collective.quota.settings import SOURCE_ENV
 from collective.quota.settings import SOURCE_ENV_LOCKED
 from collective.quota.settings import SOURCE_REGISTRY
 from collective.quota.usage import get_usage_info
-from collective.quota.usage import LEVEL_EXCEEDED
-from collective.quota.usage import LEVEL_WARNING
-from collective.quota.utils import human_readable_size
 from collective.quota.vocabularies.policies import POLICY_TITLES
 from html import escape
 from plone.app.registry.browser.controlpanel import ControlPanelFormWrapper
@@ -48,11 +46,6 @@ SOURCE_BADGES = {
     SOURCE_ENV: "text-bg-info",
     SOURCE_ENV_LOCKED: "text-bg-dark",
     SOURCE_DEFAULT: "text-bg-secondary",
-}
-
-LEVEL_BARS = {
-    LEVEL_EXCEEDED: "bg-danger",
-    LEVEL_WARNING: "bg-warning",
 }
 
 
@@ -178,18 +171,7 @@ class QuotaControlPanel(ControlPanelFormWrapper):
         return read_env().lock
 
     def usage_summary(self):
-        info = self.usage()
-        settings = self.settings()
-        return {
-            "total": human_readable_size(info.total),
-            "hard": human_readable_size(info.hard) if info.hard else None,
-            "soft": human_readable_size(info.soft) if info.soft else None,
-            "percent": info.percent,
-            "width": min(info.percent or 0, 100),
-            "level": info.level,
-            "bar_class": LEVEL_BARS.get(info.level, "bg-success"),
-            "policy": POLICY_TITLES.get(settings.policy, settings.policy),
-        }
+        return usage_summary(self.usage(), self.settings())
 
     def source_rows(self):
         settings = self.settings()
@@ -208,8 +190,6 @@ class QuotaControlPanel(ControlPanelFormWrapper):
         ]
 
     def usage_view_url(self):
-        if self.context.restrictedTraverse("@@quota-usage", None) is None:
-            return None
         return f"{self.context.absolute_url()}/@@quota-usage"
 
     def rebuild_url(self):

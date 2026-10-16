@@ -34,3 +34,6 @@ class TestSetupUninstall:
 
         registry = getUtility(IRegistry)
         assert not [k for k in registry.records if k.startswith("collective.quota.")]
+
+    def test_user_action_removed(self, portal):
+        assert "disk-usage" not in portal.portal_actions.user.objectIds()

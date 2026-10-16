@@ -1,0 +1,299 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      lang="en"
+      metal:use-macro="context/main_template/macros/master"
+      xml:lang="en"
+      i18n:domain="collective.quota"
+>
+
+  <body>
+    <metal:main fill-slot="main">
+
+      <h1 class="documentFirstHeading"
+          i18n:translate=""
+      >Disk usage</h1>
+
+      <section class="card mb-4"
+               id="quota-usage"
+               tal:define="
+                 summary view/summary;
+               "
+      >
+        <div class="card-body">
+          <p class="mb-2">
+            <span i18n:translate="">Total:</span>
+            <strong id="quota-usage-total"
+                    tal:content="summary/total"
+            >3.4 GB</strong>
+            <tal:hard condition="summary/hard">
+              <span i18n:translate="">of</span>
+              <strong id="quota-usage-hard"
+                      tal:content="summary/hard"
+              >5 GB</strong>
+              (<span tal:replace="summary/percent">68</span>%)
+            </tal:hard>
+          </p>
+          <div class="progress mb-2"
+               aria-valuemax="100"
+               aria-valuemin="0"
+               role="progressbar"
+               tal:condition="summary/hard"
+               tal:attributes="
+                 aria-valuenow summary/width;
+               "
+          >
+            <div class="progress-bar"
+                 id="quota-usage-bar"
+                 tal:attributes="
+                   class string:progress-bar ${summary/bar_class};
+                   style string:width: ${summary/width}%;
+                   data-level summary/level;
+                 "
+            ></div>
+          </div>
+          <p class="mb-0"
+             id="quota-usage-limits"
+          >
+            <span i18n:translate="">Soft limit:</span>
+            <span tal:content="summary/soft">4 GB</span>
+            <span tal:condition="not:summary/soft"
+                  i18n:translate=""
+            >disabled</span>
+            &middot;
+            <span i18n:translate="">Hard limit:</span>
+            <span tal:content="summary/hard">5 GB</span>
+            <span tal:condition="not:summary/hard"
+                  i18n:translate=""
+            >disabled</span>
+            &middot;
+            <span i18n:translate="">Policy:</span>
+            <span id="quota-usage-policy"
+                  tal:content="summary/policy"
+            >Block</span>
+          </p>
+          <div class="d-flex gap-2 mt-3"
+               id="quota-usage-manage"
+               tal:condition="view/can_manage"
+          >
+            <a class="btn btn-sm btn-outline-primary"
+               id="quota-settings-link"
+               href="#"
+               tal:attributes="
+                 href view/controlpanel_url;
+               "
+               i18n:translate=""
+            >Quota settings</a>
+            <form method="post"
+                  tal:attributes="
+                    action view/rebuild_url;
+                  "
+            >
+              <span tal:replace="structure context/@@authenticator/authenticator"></span>
+              <button class="btn btn-sm btn-outline-secondary"
+                      name="form.button.rebuild"
+                      type="submit"
+                      i18n:translate=""
+              >Rebuild usage data</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <div class="alert"
+           id="quota-usage-alert"
+           role="alert"
+           tal:define="
+             alert view/alert;
+           "
+           tal:condition="alert"
+           tal:content="alert/message"
+           tal:attributes="
+             class string:alert ${alert/css_class};
+           "
+      >Disk usage warning</div>
+
+      <form class="d-flex align-items-center gap-2 mb-3"
+            id="quota-limit-form"
+            method="get"
+            tal:define="
+              limit view/limit;
+            "
+      >
+        <label class="form-label mb-0"
+               for="quota-limit"
+               i18n:translate=""
+        >Number of items</label>
+        <select class="form-select form-select-sm w-auto"
+                id="quota-limit"
+                name="limit"
+        >
+          <option tal:repeat="value view/limits"
+                  tal:content="value"
+                  tal:attributes="
+                    value value;
+                    selected python:value == limit or None;
+                  "
+          >25</option>
+        </select>
+        <button class="btn btn-sm btn-secondary"
+                type="submit"
+                i18n:translate=""
+        >Show</button>
+      </form>
+
+      <form id="quota-usage-form"
+            method="post"
+            tal:define="
+              items view/items;
+            "
+            tal:attributes="
+              action view/delete_url;
+            "
+      >
+        <span tal:replace="structure context/@@authenticator/authenticator"></span>
+        <p tal:condition="not:items"
+           i18n:translate=""
+        >No uploaded files or images found.</p>
+        <table class="table table-striped"
+               id="quota-usage-items"
+               tal:condition="items"
+        >
+          <thead>
+            <tr>
+              <th>
+                <input class="form-check-input"
+                       id="quota-select-all"
+                       title="Select all"
+                       type="checkbox"
+                       i18n:attributes="title"
+                />
+              </th>
+              <th i18n:translate="">Title</th>
+              <th i18n:translate="">Type</th>
+              <th i18n:translate="">Location</th>
+              <th class="text-end"
+                  i18n:translate=""
+              >Size</th>
+              <th i18n:translate="">Modified</th>
+              <th i18n:translate="">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr tal:repeat="item items"
+                tal:attributes="
+                  data-uid item/uid;
+                "
+            >
+              <td>
+                <input class="form-check-input quota-select"
+                       name="uids:list"
+                       type="checkbox"
+                       tal:condition="item/can_delete"
+                       tal:attributes="
+                         value item/uid;
+                       "
+                />
+                <input class="form-check-input"
+                       disabled="disabled"
+                       title="You cannot delete this item"
+                       type="checkbox"
+                       tal:condition="not:item/can_delete"
+                       i18n:attributes="title"
+                />
+              </td>
+              <td><a href="#"
+                   tal:content="item/title"
+                   tal:attributes="
+                     href item/url;
+                   "
+                >Title</a></td>
+              <td tal:content="item/type_title">File</td>
+              <td><a href="#"
+                   tal:content="item/parent_title"
+                   tal:attributes="
+                     href item/parent_url;
+                   "
+                >Folder</a></td>
+              <td class="text-end text-nowrap"
+                  tal:content="item/size_human"
+                  tal:attributes="
+                    title string:${item/size} bytes;
+                  "
+              >1.2 MB</td>
+              <td class="text-nowrap"
+                  tal:content="item/modified"
+              >Oct 15, 2026</td>
+              <td class="text-nowrap">
+                <a class="quota-edit"
+                   href="#"
+                   tal:attributes="
+                     href item/edit_url;
+                   "
+                   i18n:translate=""
+                >Edit</a>
+                <tal:delete condition="item/can_delete">
+                  &middot;
+                  <a class="quota-delete"
+                     href="#"
+                     tal:attributes="
+                       href string:${view/delete_url}?uids:list=${item/uid};
+                     "
+                     i18n:translate=""
+                  >Delete</a>
+                </tal:delete>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <button class="btn btn-danger"
+                id="quota-delete-selected"
+                type="submit"
+                tal:condition="items"
+                i18n:translate=""
+        >Delete selected</button>
+      </form>
+
+      <p class="text-muted mt-3"
+         i18n:translate=""
+      >Sizes include only uploaded files and images. Showing the
+        <span tal:replace="view/limit"
+              i18n:name="limit"
+        >25</span>
+        largest items you can see.</p>
+
+      <script>
+        (function () {
+          var form = document.getElementById("quota-usage-form");
+          var button = document.getElementById("quota-delete-selected");
+          var all = document.getElementById("quota-select-all");
+          if (!form || !button) {
+            return;
+          }
+          var boxes = form.querySelectorAll("input.quota-select");
+          function update() {
+            var checked = form.querySelectorAll("input.quota-select:checked");
+            button.disabled = checked.length === 0;
+            if (all) {
+              all.checked = boxes.length > 0 && checked.length === boxes.length;
+            }
+          }
+          if (all) {
+            all.addEventListener("change", function () {
+              boxes.forEach(function (box) {
+                box.checked = all.checked;
+              });
+              update();
+            });
+          }
+          boxes.forEach(function (box) {
+            box.addEventListener("change", update);
+          });
+          update();
+        })();
+      </script>
+
+    </metal:main>
+  </body>
+</html>

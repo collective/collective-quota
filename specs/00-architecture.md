@@ -1,7 +1,7 @@
 # 00 — Architecture and canonical names
 
 Status: Reference (keep in sync with code)
-Last updated: 2026-10-15
+Last updated: 2026-10-16
 
 ## 1. Problem and goals
 
@@ -442,6 +442,7 @@ backend/src/collective/quota/
   browser/configure.zcml      views, viewlet, add-form guard adapter
   browser/usage.py            DiskUsageView
   browser/delete.py           QuotaDeleteView
+  browser/summary.py          usage card values, warning/exceeded texts (shared)
   browser/rebuild.py          QuotaRebuildView
   browser/viewlets.py         QuotaWarningViewlet
   browser/addform_guard.py    QuotaAddFormValidator (hook B)
@@ -464,7 +465,7 @@ backend/tests/                conftest.py + test modules per phase
 - Total read: O(1). Viewlet and validators never touch the catalog's BTrees beyond the
   `Length`.
 - Usage view: one sorted catalog query bounded by `sort_limit` (≤ 100), then at most
-  100 `getObject()` calls to check `Delete objects`. Acceptable.
+  100 object loads (`_unrestrictedGetObject()`) to check `Delete objects`. Acceptable.
 - Install/rebuild: O(n) object loads once. Log progress every 1000 items; provide a
   `zconsole` script with periodic `transaction.savepoint()`/commit for very large sites.
 - Writes: `Length` conflict resolution avoids retries on concurrent uploads; the
@@ -477,7 +478,8 @@ backend/tests/                conftest.py + test modules per phase
 - All quota information (totals, listing, banner) is behind `ViewDiskUsage`; anonymous
   users never see it. Templates additionally check `portal_state.anonymous()` so a
   mis-mapped permission still hides the banner.
-- `@@quota-usage` uses a restricted catalog search: users only see items they can view.
+- `@@quota-usage` uses a restricted catalog search: users only see items they can view
+  (Plone's catalog security follows "Access contents information").
 - `@@quota-delete` enforces `Delete objects` per item and `plone.protect` CSRF tokens on
   the confirm step; `@@quota-rebuild` is POST-only with a token.
 - `@@quota-controlpanel` is behind `ManageSettings`.

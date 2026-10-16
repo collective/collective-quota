@@ -1,6 +1,6 @@
 # collective.quota — Specification
 
-Last updated: 2026-10-15
+Last updated: 2026-10-16
 
 `collective.quota` is a Plone add-on that measures the disk space used by uploaded
 files and images, lets site administrators configure a soft limit (warnings) and a
@@ -41,7 +41,7 @@ Code lives in `backend/` (Python, Plone 6.2) and, in a later iteration, `fronten
 | 2 | [phase-02-blob-size-index.md](phase-02-blob-size-index.md) | `blob_size` indexer, `BlobSizeIndex` with running total, install-time population | Done | 1 |
 | 3 | [phase-03-settings-control-panel.md](phase-03-settings-control-panel.md) | Settings: registry + environment variables + lock flag, control panel, REST control panel adapter | Done | 1, 2 |
 | 4 | [phase-04-policy-enforcement.md](phase-04-policy-enforcement.md) | Quota policy, enforcement in Classic forms and REST, transaction commit guard | Done | 2, 3 |
-| 5 | [phase-05-disk-usage-view.md](phase-05-disk-usage-view.md) | `@@quota-usage` biggest-items view, multi-delete with link integrity, user-menu entry | Not started | 2, 3 |
+| 5 | [phase-05-disk-usage-view.md](phase-05-disk-usage-view.md) | `@@quota-usage` biggest-items view, multi-delete with link integrity, user-menu entry | Done | 2, 3 |
 | 6 | [phase-06-warning-viewlet.md](phase-06-warning-viewlet.md) | Soft/hard limit warning viewlet for editors | Not started | 2, 3, 5 |
 | 7 | [phase-07-release-readiness.md](phase-07-release-readiness.md) | Uninstall, upgrade scaffolding, i18n, docs, changelog, manual QA | Not started | 1–6 |
 | 8 | [phase-08-volto-future.md](phase-08-volto-future.md) | REST endpoints and Volto UI | Deferred | 1–7 |

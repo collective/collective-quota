@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<object xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+        meta_type="Plone Actions Tool"
+        name="portal_actions"
+>
+  <object meta_type="CMF Action Category"
+          name="user"
+  >
+    <object insert-after="preferences"
+            meta_type="CMF Action"
+            name="disk-usage"
+            i18n:domain="collective.quota"
+    >
+      <property name="title"
+                i18n:translate=""
+      >Disk usage</property>
+      <property name="description"
+                i18n:translate=""
+      />
+      <property name="url_expr">python:f"{plone_portal_state.portal_url()}/@@quota-usage"</property>
+      <property name="icon_expr">string:hdd</property>
+      <property name="available_expr">python:member is not None</property>
+      <property name="permissions">
+        <element value="collective.quota: View Disk Usage" />
+      </property>
+      <property name="visible">True</property>
+    </object>
+  </object>
+</object>
