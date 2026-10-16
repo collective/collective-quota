@@ -326,14 +326,13 @@ Acceptance (Cypress, `frontend/cypress/tests/quota.cy.js`, backend from
 - Backend add-on not installed: `POST @addons/collective.quota/uninstall` → no banner,
   no menu entry, `/quota-usage` shows the "not installed" message (rule 3).
 
-CI: `.github/workflows/frontend.yml` gets an `acceptance` job that depends on `unit`:
-`make acceptance-image-build` in `backend/` (new `plone-version` input, passed from
-`main.yml`), `make install`, `make ci-acceptance-backend-start` (the frontend
-Makefile's `DOCKER_IMAGE_ACCEPTANCE` now points at this project's
-`…-backend-acceptance` image instead of the stock `plone/server-acceptance`, which
-lacks the add-on), `make acceptance-frontend-prod-start`, `wait-on`, `make
-ci-acceptance-test`; screenshots and server logs are uploaded on failure. `release`
-waits for it.
+CI: `.github/workflows/frontend.yml` gets an `acceptance` job that depends on `unit`
+and uses no Docker image: Python 3.12 + uv, `make install` in `backend/` (which brings
+`plone.volto` through the `acceptance` extra), `make install` in `frontend/`, `make
+ci-acceptance-backend-start` (the frontend Makefile delegates to `make
+acceptance-backend-start` in `backend/`), `make acceptance-frontend-prod-start`,
+`wait-on`, `make ci-acceptance-test`; screenshots and server logs are uploaded on
+failure.
 
 ### Documentation and changelog
 
@@ -351,7 +350,6 @@ waits for it.
 - [ ] `frontend/packages/volto-collective-quota/package.json` version `1.0.0-alpha.0` → release-it alpha
 - [x] `make lint`, `make test`, `make i18n` clean in `frontend/`
 - [ ] Storybook builds (cookieplone deploys it to GitHub Pages)
-- [ ] `make build-images` builds the frontend image with `VOLTO_VERSION` from `repository.toml`
 - [ ] Tag + publish to npm — maintainers
 
 ## Files
@@ -392,13 +390,17 @@ Modify:
 - [x] vitest coverage threshold (90 % lines) configured and passing
 - [x] i18n extracted; `en` and `es` translated
 - [x] Cypress suite green locally against the acceptance backend
-- [x] CI acceptance job (written; the backend acceptance image builds and serves `@quota-usage` locally; first run on GitHub pending)
+- [x] CI acceptance job (written, native backend, no Docker image; first run on GitHub pending)
 - [x] README, docs how-to, news fragment
-- [ ] Manual QA (below) on the docker-compose stack (`make stack-start`)
+- [ ] Manual QA (below) on a local development stack
 
 ## Manual QA (Volto)
 
-Stack: `make stack-create-site`, `make stack-start`, site at `http://collective-quota.localhost`.
+Stack: `make backend-create-site` and `make backend-start` (http://localhost:8080/Plone),
+then `make frontend-start` (http://localhost:3000), from the repository root. Use a
+different host name for Classic (e.g. `127.0.0.1:8080`) than for Volto
+(`localhost:3000`): browsers share cookies across ports, and a Classic login cookie
+sent through Volto's proxy makes the backend see a different user than Volto shows.
 
 1. Anonymous: home page has no banner; `/quota-usage` redirects to login; the toolbar is absent.
 2. Login as editor: user menu shows "Disk usage"; page lists the example content (2 Files, 1 Image) with sizes; limit buttons work.

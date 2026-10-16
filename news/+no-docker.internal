@@ -1,0 +1,1 @@
+Drop the Docker images, the Docker Compose stack and the image build-and-push CI jobs: collective.quota and volto-collective-quota ship as Python and npm packages. Acceptance tests in CI now run the backend from its virtualenv.

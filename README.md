@@ -27,7 +27,6 @@ The backend add-on, `collective.quota`, works with Plone 6.1 and 6.2 and stands 
 -   [Node.js and pnpm](https://6.docs.plone.org/install/create-project.html#node-js) 24
 -   [Make](https://6.docs.plone.org/install/create-project-cookieplone.html#make)
 -   [Git](https://6.docs.plone.org/install/create-project-cookieplone.html#git)
--   [Docker](https://docs.docker.com/get-started/get-docker/) (optional)
 
 
 ### Installation 🔧
@@ -68,38 +67,18 @@ The backend add-on, `collective.quota`, works with Plone 6.1 and 6.2 and stands 
 
 Voila! Your Plone site should be live and kicking! 🎉
 
-### Local Stack Deployment 📦
-
-Deploy a local Docker Compose environment that includes the following.
-
-- Docker images for Backend and Frontend 🖼️
-- A stack with a Traefik router and a PostgreSQL database 🗃️
-- Accessible at [http://collective-quota.localhost](http://collective-quota.localhost) 🌐
-
-Run the following commands in a shell session.
-
-```shell
-make stack-create-site
-make stack-start
-```
-
-And... you're all set! Your Plone site is up and running locally! 🚀
-
 ## Project structure 🏗️
 
 This monorepo consists of the following distinct sections:
 
-- **backend**: Houses the API and Plone installation, utilizing pip instead of buildout, and includes a policy package named collective.quota.
-- **frontend**: Contains the React (Volto) package.
-- **devops**: Encompasses Docker stack, Ansible playbooks, and cache settings.
+- **backend**: The Python add-on `collective.quota`, with a development Plone installation (pip instead of buildout).
+- **frontend**: The Volto add-on `volto-collective-quota`.
 - **docs**: Scaffold for writing documentation for your project.
 
 ### Why this structure? 🤔
 
-- All necessary codebases to run the site are contained within the repository (excluding existing add-ons for Plone and React).
+- Both halves of the add-on, and what you need to develop and test them, live in one repository.
 - Specific GitHub Workflows are triggered based on changes in each codebase (refer to .github/workflows).
-- Simplifies the creation of Docker images for each codebase.
-- Demonstrates Plone installation/setup without buildout.
 
 ## Code quality assurance 🧐
 

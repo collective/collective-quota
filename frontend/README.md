@@ -71,7 +71,6 @@ For these reasons, it only works with pnpm and Volto 18.
 -   [Node.js and pnpm](https://6.docs.plone.org/install/create-project.html#node-js) 24
 -   [Make](https://6.docs.plone.org/install/create-project-cookieplone.html#make)
 -   [Git](https://6.docs.plone.org/install/create-project-cookieplone.html#git)
--   [Docker](https://docs.docker.com/get-started/get-docker/) (optional)
 
 ### Installation 🔧
 
@@ -104,10 +103,10 @@ make install
 
 ### Start developing
 
-Start the backend.
+Start the backend from `../backend` (Plone with `collective.quota`; on the first run, `make install` and `make create-site` there).
 
 ```shell
-make backend-docker-start
+make backend-start
 ```
 
 In a separate terminal session, start the frontend.

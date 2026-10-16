@@ -77,6 +77,10 @@ phase 9 is `Done` only against the real services.
   enforced by `make test` and CI. Cypress flows are not counted, so on top of the
   number every reducer/helper has a unit test, every component a render test, and
   every user-visible flow a Cypress test (phase 9 lists them).
+- **No Docker images**: this is an add-on, shipped as a Python package and an npm
+  package. The repository has no Dockerfiles, no Compose stack and no image jobs in
+  CI; development, acceptance and CI servers run from the backend virtualenv and the
+  frontend checkout.
 - **Frontend dependencies**: the add-on declares no runtime `dependencies`; everything
   comes from `@plone/volto`. The backend never depends on `plone.volto` at runtime
   (only the `acceptance` extra, phase 8).

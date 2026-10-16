@@ -579,7 +579,7 @@ frontend/cypress/tests/quota.cy.js
 - Profile dependencies: `plone.app.registry:default` and `plone.restapi:default` (a
   plain Classic site does not install restapi on its own; see phase 1). No `plone.volto`
   at runtime; the `acceptance` extra (phase 8) installs it only so the Volto acceptance
-  server (`make acceptance-backend-start`, `Dockerfile.acceptance`) can run, and the
+  server (`make acceptance-backend-start`) can run, and the
   `default` profile never depends on `plone.volto:default`.
 - The Volto add-on is installed in a Volto project the usual way (`package.json`
   dependency + `volto.config.js` addons). It has no backend profile of its own.
@@ -619,7 +619,6 @@ Checked on 2026-10-16 for phases 8–9 (plone.restapi 10.0.4, plone.rest 6.0.0, 
 - Volto 19.5.0 (`packages/volto/src`): `App.jsx` renders `<SlotRenderer name="aboveApp" content={content} />` before the header, inside `PluggablesProvider`, and `<AppExtras>` at the end; `config/slots.js` shows slot entries with `predicates` (e.g. `onlyCMSUI` reading `location.pathname`); `Toolbar/PersonalTools.jsx` renders `<Pluggable name="toolbar-user-menu" />` after "Site Setup"; `config/index.js` defines `settings.apiExpanders` (`{ match, GET_CONTENT: [...] }`), `settings.appExtras` (`{ match, ignore, component, props }` consumed by `theme/AppExtras/AppExtras.jsx` with `matchPath`), `settings.nonContentRoutes` (strings or regexes, `config/NonContentRoutes.jsx`), `settings.controlPanelsIcons`, `addonRoutes` (placed before the default routes in `routes.js`, so `/controlpanel/collective-quota` beats `/controlpanel/:id`), `addonReducers`.
 - Volto 19.5.0 `Controlpanels/Controlpanel.jsx` is the generic control panel (Form + `getControlpanel`/`updateControlpanel`, invariant errors via `extractInvariantErrors` into a toast); `Contents/ContentsDeleteModal.jsx` uses `linkIntegrityCheck(uids)` from `actions/content/content.js` and reads `state.linkIntegrity.result`; `deleteContent(urls)` dispatches serial `DELETE`s. Volto 19.5.0 pins react 18.2, react-router(-dom) 5.2, react-redux 8.1, react-intl 3.12, semantic-ui-react 2.1.5.
 - Volto's Cypress commands (`packages/volto/cypress/support/commands.js`) provide `autologin`, `createContent` (with base64 `File`/`Image` payloads), `removeContent`, `setRegistry(record, value)`, `navigate`, `intercept` helpers used by the phase 9 acceptance tests.
-- `plone/server-acceptance` images (plone-backend `Dockerfile.acceptance`, branch 6.2.x) run `plone.app.robotframework.testing.VOLTO_ROBOT_TESTING` with `CONFIGURE_PACKAGES=…plone.volto,plone.volto.cors` and `APPLY_PROFILES` from the environment; the builder image installs the `Plone` meta package. Whether that already includes `plone.volto` is to be confirmed when building the image; the `acceptance` extra makes it irrelevant.
 
 ## 12. Testing policy
 

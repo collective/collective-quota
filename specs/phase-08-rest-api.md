@@ -250,7 +250,7 @@ and the fallback without the configlet (Classic is unaffected: it reads
 
 `plone.volto` is **not** a runtime dependency (dropped in phase 1, see
 `news/+drop-plone-volto.breaking`). The Volto acceptance server (`make
-acceptance-backend-start` in `backend/`, `Dockerfile.acceptance`) configures
+acceptance-backend-start` in `backend/`) configures
 `plone.restapi,plone.volto,plone.volto.cors,collective.quota`, which currently fails in
 the local virtualenv because `plone.volto` is not installed.
 
@@ -260,18 +260,17 @@ the local virtualenv because `plone.volto` is not installed.
   having `plone.volto` importable does not change what the unit/functional tests load.
   `tests/test_scaffold.py` gets an assertion that `plone.volto` is **not** in the
   runtime `dependencies` list (keeps the rule honest).
-- `Dockerfile.acceptance`: update the `sed` that strips the extras so it turns
-  `-e .[test,acceptance]` into `.[acceptance]`. Verify at build time whether the
-  `plone/server-builder` image already ships `plone.volto` (the `Plone` meta package
-  may pull it); the extra is harmless either way.
+- (Phase 8 also updated `Dockerfile.acceptance`; the project later dropped all Docker
+  images, see `README.md` conventions, so the acceptance server runs only from the
+  virtualenv.)
 - Nothing in the `default` profile changes: `plone.volto:default` is **not** a
   dependency. The Volto acceptance server applies it through `APPLY_PROFILES`
   (`plone.volto:default,collective.quota:default`) the way the Volto project templates
   do.
 - The robot fixture only runs a package's Zope product `initialize()` for names in
   `INSTALL_PRODUCTS`; without it `BlobSizeIndex` is not registered and applying
-  `catalog.xml` fails with "Index of type BlobSizeIndex not found". Both the Makefile
-  target and `Dockerfile.acceptance` set `INSTALL_PRODUCTS=collective.quota`.
+  `catalog.xml` fails with "Index of type BlobSizeIndex not found". The Makefile
+  target sets `INSTALL_PRODUCTS=collective.quota`.
 
 ### Documentation and changelog
 
@@ -302,7 +301,7 @@ Modify:
 - `backend/src/collective/quota/browser/summary.py` (re-export shim)
 - `backend/src/collective/quota/restapi/configure.zcml`
 - `backend/src/collective/quota/controlpanels/restapi.py` (comment on the `group` fallback)
-- `backend/pyproject.toml`, `backend/mx.ini`, `backend/Dockerfile.acceptance`,
+- `backend/pyproject.toml`, `backend/mx.ini`,
   `backend/Makefile` (`INSTALL_PRODUCTS`, `plone.volto:default`)
 - `backend/tests/test_scaffold.py`, `backend/tests/test_controlpanel_restapi.py` (group)
 - `backend/README.md`, `docs/docs/reference/index.md`, `docs/docs/reference/views-and-viewlet.md`
@@ -316,7 +315,7 @@ Modify:
 - [x] `quota` expander + ZCML
 - [x] `POST @quota-rebuild` service + ZCML
 - [x] Control panel group: REST listing shows "Add-on Configuration"; `group` kept as the fallback when the configlet is missing
-- [x] `acceptance` extra, `mx.ini`, `Dockerfile.acceptance` sed; `make acceptance-backend-start` starts locally and answers `GET /plone/@quota-usage` with the admin user
+- [x] `acceptance` extra, `mx.ini`; `make acceptance-backend-start` starts locally and answers `GET /plone/@quota-usage` with the admin user
 - [x] README "REST API" section, docs reference page, news fragment
 - [x] `make lint`, `make test-coverage` at 100 %
 

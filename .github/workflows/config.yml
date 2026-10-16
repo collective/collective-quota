@@ -27,12 +27,6 @@ on:
       frontend:
         description: "Flag reporting if we should run the frontend jobs"
         value: ${{ jobs.config.outputs.frontend }}
-      base-tag:
-        description: "Base tag to be used when creating container images"
-        value: ${{ jobs.config.outputs.base-tag }}
-      image-name-prefix:
-        description: "Image name prefix for container images"
-        value: ${{ jobs.config.outputs.image-name-prefix }}
       node-version:
         description: "Node version to be used"
         value: ${{ inputs.node-version }}
@@ -76,10 +70,8 @@ jobs:
       devops: ${{ steps.filter.outputs.devops }}
       docs: ${{ steps.filter.outputs.docs }}
       frontend: ${{ steps.filter.outputs.frontend }}
-      base-tag: ${{ steps.vars.outputs.base-tag }}
       plone-version: ${{ steps.vars.outputs.plone-version }}
       volto-version: ${{ steps.vars.outputs.volto-version }}
-      image-name-prefix: ${{ steps.vars.outputs.image-name-prefix }}
       storybook-deploy: ${{ steps.vars.outputs.storybook-deploy }}
       changelog-backend: ${{ steps.filter.outputs.changelog-backend }}
       changelog-frontend: ${{ steps.filter.outputs.changelog-frontend }}
@@ -106,10 +98,8 @@ jobs:
           # `repoplone` reports absolute paths, but the checks need them
           # relative to the repository root.
           ROOT="$(jq -r '.root_path' <<< "$REPOSITORY_SETTINGS")"
-          echo "image-name-prefix=$(jq -r '.container_images_prefix' <<< "$REPOSITORY_SETTINGS")" >> "$GITHUB_OUTPUT"
           echo "plone-version=$(jq -r '.backend.base_package_version' <<< "$REPOSITORY_SETTINGS")" >> "$GITHUB_OUTPUT"
           echo "volto-version=$(jq -r '.frontend.volto_version' <<< "$REPOSITORY_SETTINGS")" >> "$GITHUB_OUTPUT"
-          echo "base-tag=sha-$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
           echo "path-backend=$(jq -r '.backend.path' <<< "$REPOSITORY_SETTINGS" | sed "s|^${ROOT}/||")" >> "$GITHUB_OUTPUT"
           echo "path-frontend=$(jq -r '.frontend.path' <<< "$REPOSITORY_SETTINGS" | sed "s|^${ROOT}/||")" >> "$GITHUB_OUTPUT"
           echo "path-root=." >> "$GITHUB_OUTPUT"
@@ -144,13 +134,10 @@ jobs:
               - '.vscode/**'
               - 'devops/**'
               - 'docs/**'
-              - 'docker-compose.yml'
               - 'README.md'
 
       - name: Test vars
         run: |
-          echo "base-tag: ${{ steps.vars.outputs.base-tag }}"
-          echo 'image-name-prefix: ${{ steps.vars.outputs.image-name-prefix }}'
           echo 'plone-version: ${{ steps.vars.outputs.plone-version }}'
           echo 'volto-version: ${{ steps.vars.outputs.volto-version }}'
           echo 'path-backend: ${{ steps.vars.outputs.path-backend }}'

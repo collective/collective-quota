@@ -3,22 +3,7 @@ name: Frontend CI
 on:
   workflow_call:
     inputs:
-      base-tag:
-        required: true
-        type: string
-      image-name-prefix:
-        required: true
-        type: string
-      image-name-suffix:
-        required: true
-        type: string
       node-version:
-        required: true
-        type: string
-      volto-version:
-        required: true
-        type: string
-      plone-version:
         required: true
         type: string
       storybook-deploy:
@@ -64,6 +49,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          # The backend supports Python 3.11 to 3.13.
+          python-version: "3.12"
+
       - name: Set up uv
         uses: astral-sh/setup-uv@v6
 
@@ -77,9 +68,9 @@ jobs:
         with:
           node-version: ${{ inputs.node-version }}
 
-      - name: Build the backend acceptance image
+      - name: Install the backend
         working-directory: backend
-        run: make acceptance-image-build PLONE_VERSION=${{ inputs.plone-version }}
+        run: make install
 
       - name: Install the frontend
         run: make install
@@ -122,29 +113,6 @@ jobs:
     permissions:
       contents: write
 
-  release:
-    name: "Frontend: Build and publish container image"
-    uses: plone/meta/.github/workflows/container-image-build-push.yml@2.x
-    needs:
-      - code-analysis
-      - i18n
-      - unit
-      - acceptance
-      - storybook
-    permissions:
-      contents: read
-      packages: write
-    with:
-      base-tag: ${{ inputs.base-tag }}
-      image-name-prefix: ${{ inputs.image-name-prefix }}
-      image-name-suffix: ${{ inputs.image-name-suffix }}
-      working-directory: ${{ inputs.working-directory }}
-      build-args: |
-        VOLTO_VERSION=${{ inputs.volto-version }}
-      push: ${{ github.event_name != 'pull_request' }}
-    secrets:
-      username: ${{ github.actor }}
-      password: ${{ secrets.GITHUB_TOKEN }}
 
   report:
     name: "Final report"
@@ -156,7 +124,6 @@ jobs:
       - unit
       - acceptance
       - storybook
-      - release
     steps:
       - name: Write report
         run: |
@@ -168,4 +135,3 @@ jobs:
           echo '| unit | ${{ needs.unit.result }} |' >> $GITHUB_STEP_SUMMARY
           echo '| acceptance | ${{ needs.acceptance.result }} |' >> $GITHUB_STEP_SUMMARY
           echo '| storybook | ${{ needs.storybook.result }} |' >> $GITHUB_STEP_SUMMARY
-          echo '| release | ${{ needs.release.result }} |' >> $GITHUB_STEP_SUMMARY

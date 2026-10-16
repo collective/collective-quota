@@ -336,7 +336,7 @@ Modify:
 - [x] Control panel template: usage card, sources table, lock alert, rebuild form
 - [x] `controlpanel.xml` default + uninstall
 - [x] REST `IControlpanel` adapter with `sources`/`locked` in GET and locked-field rejection in PATCH
-- [x] Document the variables in `backend/README.md` and add commented examples to `docker-compose.yml`
+- [x] Document the variables in `backend/README.md` and add commented examples to `docker-compose.yml` (the compose stack was later removed; the README examples stay)
 - [x] Manual check in a running site: Site Setup → Add-on Configuration → Quota; save values; rebuild and reset buttons; invariants shown as errors; start the instance with `COLLECTIVE_QUOTA_HARD_LIMIT_MB=100 COLLECTIVE_QUOTA_LOCK_SETTINGS=1` and confirm the field is read-only and REST PATCH is refused
 - [x] `set_quota(soft_mb=0, hard_mb=0, policy="block_all", max_file_mb=10)` fixture in `tests/conftest.py` writing the four registry records (moved here from phase 1); switch `quota_env` to `collective.quota.settings.ENV_VARS` / `LOCK_VAR` instead of the `QUOTA_ENV_VARS` copy in `conftest.py`
 - [x] `make i18n`; `make lint`; coverage 100 %

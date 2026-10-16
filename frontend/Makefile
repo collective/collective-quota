@@ -21,17 +21,7 @@ YELLOW=`tput setaf 3`
 
 REPOSITORY_SETTINGS := $(shell uvx repoplone settings dump)
 
-DOCKER_IMAGE=plone/server-dev:${PLONE_VERSION}
-
 ADDON_NAME := $(shell echo '$(REPOSITORY_SETTINGS)' | jq -r '.frontend.name')
-IMAGE_NAME_PREFIX := $(shell echo '$(REPOSITORY_SETTINGS)' | jq -r '.container_images_prefix')
-IMAGE_NAME_SEPARATOR := -
-IMAGE_NAME_PREFIX_WITH_SEPARATOR := $(IMAGE_NAME_PREFIX)$(IMAGE_NAME_SEPARATOR)
-
-IMAGE_TAG=latest
-IMAGE_NAME=$(IMAGE_NAME_PREFIX_WITH_SEPARATOR)frontend:$(IMAGE_TAG)
-# Backend with collective.quota, built by `make acceptance-image-build` in backend/.
-DOCKER_IMAGE_ACCEPTANCE=$(IMAGE_NAME_PREFIX_WITH_SEPARATOR)backend-acceptance:$(IMAGE_TAG)
 
 # Environment variables to be exported
 export VOLTO_VERSION := $(shell echo '$(REPOSITORY_SETTINGS)' | jq -r '.frontend.volto_version')
@@ -47,7 +37,6 @@ debug-settings:  ## Debug settings
 	@echo "VOLTO_VERSION: $(VOLTO_VERSION)"
 	@echo "PLONE_VERSION: $(PLONE_VERSION)"
 	@echo "ADDON_NAME: $(ADDON_NAME)"
-	@echo "IMAGE_NAME: $(IMAGE_NAME)"
 
 # Dev Helpers
 .PHONY: clean
@@ -116,10 +105,10 @@ ci-test: ## Run unit tests in CI
 	VOLTOCONFIG=$(pwd)/volto.config.js pnpm --filter @plone/volto i18n
 	CI=1 pnpm run test
 
-.PHONY: backend-docker-start
-backend-docker-start:	## Starts a Docker-based backend for development
-	@echo "$(GREEN)==> Start Docker-based Plone Backend$(RESET)"
-	docker run -it --rm --name=backend -p 8080:8080 -e SITE=Plone $(DOCKER_IMAGE)
+.PHONY: backend-start
+backend-start:	## Starts the Plone backend with collective.quota (backend/), for development
+	@echo "$(GREEN)==> Start Plone Backend$(RESET)"
+	$(MAKE) -C $(CURRENT_DIR)/../backend start
 
 ## Storybook
 .PHONY: storybook-start
@@ -143,12 +132,12 @@ acceptance-frontend-prod-start: ## Start acceptance frontend in production mode
 	RAZZLE_API_PATH=http://127.0.0.1:55001/plone pnpm build && pnpm start:prod
 
 .PHONY: acceptance-backend-start
-acceptance-backend-start: ## Start backend acceptance server
-	docker run -it --rm -p 55001:55001 $(DOCKER_IMAGE_ACCEPTANCE)
+acceptance-backend-start: ## Start backend acceptance server (backend/, needs `make install` there)
+	$(MAKE) -C $(CURRENT_DIR)/../backend acceptance-backend-start
 
 .PHONY: ci-acceptance-backend-start
 ci-acceptance-backend-start: ## Start backend acceptance server in headless mode for CI
-	docker run -i --rm -p 55001:55001 $(DOCKER_IMAGE_ACCEPTANCE)
+	$(MAKE) -C $(CURRENT_DIR)/../backend acceptance-backend-start
 
 .PHONY: acceptance-test
 acceptance-test: ## Start Cypress in interactive mode
@@ -157,7 +146,3 @@ acceptance-test: ## Start Cypress in interactive mode
 .PHONY: ci-acceptance-test
 ci-acceptance-test: ## Run cypress tests in headless mode for CI
 	pnpm --filter @plone/volto exec cypress run --config-file $(CURRENT_DIR)/cypress.config.js --config specPattern=$(CURRENT_DIR)'/cypress/tests/**/*.{js,jsx,ts,tsx}'
-
-.PHONY: build-image
-build-image:  ## Build Docker Image
-	@DOCKER_BUILDKIT=1 docker build . -t $(IMAGE_NAME):$(IMAGE_TAG) -f Dockerfile --build-arg VOLTO_VERSION=$(VOLTO_VERSION)

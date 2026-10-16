@@ -24,12 +24,6 @@ ifeq (, $(shell which $(UV) ))
 endif
 
 REPOSITORY_SETTINGS := $(shell uvx repoplone settings dump)
-IMAGE_NAME_PREFIX := $(shell echo '$(REPOSITORY_SETTINGS)' | jq -r '.container_images_prefix')
-IMAGE_NAME_SEPARATOR := -
-IMAGE_NAME_PREFIX_WITH_SEPARATOR := $(IMAGE_NAME_PREFIX)$(IMAGE_NAME_SEPARATOR)
-
-IMAGE_TAG=latest
-IMAGE_NAME=$(IMAGE_NAME_PREFIX_WITH_SEPARATOR)backend:$(IMAGE_TAG)
 
 PLONE_SITE_ID=Plone
 BACKEND_FOLDER=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
@@ -42,7 +36,6 @@ BIN_FOLDER=$(VENV_FOLDER)/bin
 
 # Environment variables to be exported
 export PYTHONWARNINGS := ignore
-export DOCKER_BUILDKIT := 1
 export PYTHON_VERSION := 3.11
 export PLONE_VERSION := $(shell echo '$(REPOSITORY_SETTINGS)' | jq -r '.backend.base_package_version')
 
@@ -67,8 +60,6 @@ debug-settings:  ## Debug settings
 	@echo "PLONE_VERSION: $(PLONE_VERSION)"
 	@echo "PACKAGE_NAME: $(PACKAGE_NAME)"
 	@echo "EXAMPLE_CONTENT_FOLDER: $(EXAMPLE_CONTENT_FOLDER)"
-	@echo "IMAGE_NAME_PREFIX_WITH_SEPARATOR: $(IMAGE_NAME_PREFIX_WITH_SEPARATOR)"
-	@echo "IMAGE_NAME: $(IMAGE_NAME)"
 
 
 requirements-mxdev.txt: pyproject.toml mx.ini ## Generate constraints file
@@ -157,19 +148,10 @@ test: $(VENV_FOLDER) ## run tests
 test-coverage: $(VENV_FOLDER) ## run tests with coverage
 	@$(BIN_FOLDER)/pytest --cov --cov-branch --cov-report term-missing --cov-fail-under=100
 
-# Build Docker images
-.PHONY: build-image
-build-image:  ## Build Docker Images
-	@docker build . -t $(IMAGE_NAME) -f Dockerfile --build-arg PLONE_VERSION=$(PLONE_VERSION)
-
 # Acceptance tests
 .PHONY: acceptance-backend-start
 acceptance-backend-start: ## Start backend acceptance server
 	ZSERVER_HOST=0.0.0.0 ZSERVER_PORT=55001 LISTEN_PORT=55001 APPLY_PROFILES="plone.volto:default,$(PACKAGE_NAME):default" CONFIGURE_PACKAGES="plone.restapi,plone.volto,plone.volto.cors,$(PACKAGE_NAME)" INSTALL_PRODUCTS="$(PACKAGE_NAME)" $(BIN_FOLDER)/robot-server plone.app.robotframework.testing.VOLTO_ROBOT_TESTING
-
-.PHONY: acceptance-image-build
-acceptance-image-build:  ## Build Docker Images
-	@docker build . -t $(IMAGE_NAME_PREFIX_WITH_SEPARATOR)backend-acceptance:$(IMAGE_TAG) -f Dockerfile.acceptance --build-arg PLONE_VERSION=$(PLONE_VERSION)
 
 ## Add bobtemplates features (check bobtemplates.plone's documentation to get the list of available features)
 add: $(VENV_FOLDER)

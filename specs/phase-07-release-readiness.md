@@ -98,7 +98,7 @@ One fragment per phase in `backend/news/` (e.g. `+index.feature`, `+controlpanel
 - [x] `version.txt` / `__version__` = `1.0.0a1`
 - [x] `pyproject.toml` classifiers: Plone 6.1 and 6.2, Python 3.11–3.13 (6.1 verified: the full suite passes on Plone 6.1.5)
 - [x] `make lint`, `make test-coverage` at 100 % (gate enforced; only `locales/__main__.py` omitted)
-- [x] Docker image builds (`make build-image`) and starts (`/ok`, collective.quota 1.0.0a1 on Plone 6.2.2)
+- [x] Docker image builds (`make build-image`) and starts (`/ok`, collective.quota 1.0.0a1 on Plone 6.2.2) — later dropped: the project builds no Docker images (see `README.md` conventions)
 - [x] Build sdist/wheel (`uv build`: 1.0.0a1, 108 KB wheel with templates, profiles, example content and locales, no tests)
 - [ ] Tag, `towncrier build`, upload — maintainers, at release time
 
