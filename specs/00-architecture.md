@@ -27,9 +27,25 @@ Goals for this iteration:
    control panel cannot override them.
 8. Everything installable, uninstallable, upgradeable, translatable, and covered by
    automated tests at 100 % line and branch coverage.
+9. (Phase 8) REST services and a `quota` expansion element so any REST client, Volto
+   first, gets the same data the Classic views render.
+10. (Phase 9) A Volto add-on with the user-menu entry, the banner, the disk usage page
+    with delete, and the control panel.
 
-Non-goals (this iteration): Volto UI, per-folder or per-navigation-root quotas,
-counting CMFEditions versions or image scales, measuring non-blob content.
+Non-goals: per-folder or per-navigation-root quotas, counting CMFEditions versions or
+image scales, measuring non-blob content, Volto 18 or earlier.
+
+### 1.1 Deployment modes and product-level rules
+
+The product ships as two independent halves: the Python package `collective.quota`
+(Classic UI + REST API) and the Volto add-on `volto-collective-quota`. Three rules hold
+across both, and every phase file points back here:
+
+| # | Rule | How it is enforced |
+|---|---|---|
+| R1 | **Either half alone.** A Classic-only site installs just the Python package and gets everything (views, viewlet, control panel, enforcement, REST). The Python package never imports `plone.volto` or depends on the Volto add-on; `plone.volto` is only an `acceptance` extra for running the Volto acceptance server. The Volto add-on needs the Python package installed on the backend and degrades to "not installed" messages without it. | `tests/test_scaffold.py` checks the dependency list; the Volto pieces hide themselves when the backend sends no action / no `quota` expansion / `404`. |
+| R2 | **Only relevant people, never anonymous.** Every quota notification, menu entry, listing and number is visible only to authenticated users holding `collective.quota.ViewDiskUsage` (settings additionally need `ManageSettings`). Anonymous responses never carry quota data. | ZCML permissions on views, viewlet and services; the viewlet and the expansion element also check `anonymous()` explicitly; the Volto add-on renders only with a token **and** a positive backend signal (`disk-usage` action, `quota` key, `200`). No client-side role logic. |
+| R3 | **No limits, no noise.** With neither a soft nor a hard limit configured (both `0`, from registry, environment or defaults) the policy is never evaluated (§4 rule 1), the commit guard returns immediately, the level is always `ok`, no banner or alert renders in either UI, and the disk usage page is effectively the whole product: total plus biggest items, with a "No limits configured" note (and the control panel link for managers). | `get_usage_info()` level logic; `evaluate_*` short-circuit on `hard == 0`; JSON `limits_configured: false` with null `message`/`percent`/`policy_hint`; UI tests for the "no limits" state in Classic (phase 5/6), REST (phase 8) and Volto (phase 9). |
 
 ## 2. Canonical names
 
@@ -112,6 +128,32 @@ warning and treated as unset. Variables are read from `os.environ` on every
 | Viewlet | `collective.quota.warning` in manager `plone.globalstatusmessage` | any | `collective.quota.ViewDiskUsage` |
 | User menu action | `disk-usage` in category `user` | | `collective.quota: View Disk Usage` |
 
+### REST services and expansion (phase 8, layer `IQuotaRestapiLayer`)
+
+| Thing | Name | Context | Permission |
+|---|---|---|---|
+| Usage + biggest items | `GET @quota-usage?limit=10|25|50|100` | `IPloneSiteRoot` | `collective.quota.ViewDiskUsage` |
+| Rebuild | `POST @quota-rebuild` | `IPloneSiteRoot` | `collective.quota.ManageSettings` |
+| Expansion element | `quota` (`IExpandableElement`, for `Interface`); key `@components.quota`, absent for anonymous / no permission | any | checks `ViewDiskUsage` on the site root |
+| Control panel | `@controlpanels/collective-quota` (phase 3); group derived from the configlet category → "Add-on Configuration" | | `collective.quota.ManageSettings` |
+| Deletion | plone.restapi `DELETE <item>` + `GET @linkintegrity?uids=…` (no quota-specific endpoint) | | `Delete objects` per item |
+
+JSON naming follows plone.restapi: `@id`, `UID`, `@type`, `modified` as ISO 8601; sizes
+are bytes plus a `*_human` string; the usage level is `level`. The full field tables are
+in `phase-08-rest-api.md`.
+
+### Volto add-on (`volto-collective-quota`, phase 9)
+
+| Thing | Name |
+|---|---|
+| Routes (`config.addonRoutes`, both non-content, CMS UI) | `/quota-usage` (disk usage page), `/controlpanel/collective-quota` (custom control panel; overrides Volto's generic `/controlpanel/:id`) |
+| Banner | slot `aboveApp`, component name `collective-quota-banner`, DOM id `collective-quota-banner`, `data-level` attribute |
+| User menu entry | `Plug` id `collective-quota-disk-usage` into Volto's `toolbar-user-menu` pluggable, rendered from `config.settings.appExtras` |
+| Expander request | `config.settings.apiExpanders` entry `{ match: '', GET_CONTENT: ['quota'] }` |
+| Redux | `config.addonReducers.quota`; actions `getQuotaUsage(limit)`, `rebuildQuota()`; reuses Volto's `deleteContent`, `linkIntegrityCheck` |
+| Control panel icon | `config.settings.controlPanelsIcons['collective-quota']` |
+| Message ids | prefixed `collective.quota.` in `defineMessages`; backend-translated strings are reused as received |
+
 ### Python API (public helpers other code may import)
 
 | Symbol | Module |
@@ -126,6 +168,9 @@ warning and treated as unset. Variables are read from `os.environ` on every
 | `evaluate_upload(...)`, `evaluate_add(...)`, `Decision` | `collective.quota.policy` |
 | `QuotaExceeded` (ValidationError) | `collective.quota.policy` |
 | `MB`, `mb_to_bytes()` | `collective.quota.utils` |
+| `LIMITS`, `DEFAULT_LIMIT`, `parse_limit()`, `Item`, `biggest_items(portal, request, limit)` | `collective.quota.listing` (phase 8; shared by `@@quota-usage` and `@quota-usage`) |
+| `level_message()`, `policy_hint()`, `usage_summary()`, `ALERT_CLASSES` | `collective.quota.summary` (phase 8 moves it from `browser/summary.py`, which keeps re-exporting) |
+| `usage_payload(portal, request) -> dict` | `collective.quota.restapi.usage` (JSON summary shared by the service and the expander) |
 
 Human-readable formatting: reuse `plone.base.utils.human_readable_size` (verified to
 exist in Plone 6; `Products.CMFPlone.utils` only re-exports it with a deprecation).
@@ -418,6 +463,19 @@ limit would be crossed without approval (§5.1).
 **Settings read**: `get_settings()` merges registry + environment per §3.3; the control
 panel displays the source of every value and locks fields fixed by the environment.
 
+**Every Volto page (phase 8 + 9)**: Volto's content `GET` carries `?expand=…,quota`;
+the `quota` expander returns `{}` for anonymous or unauthorised users and the summary
+otherwise; the `aboveApp` slot component reads `content['@components'].quota` and
+renders the banner only for `warning`/`exceeded`. No extra request per page.
+
+**Volto disk usage page**: `GET @quota-usage?limit=N` → table; delete = `GET
+@linkintegrity?uids=…` (preview) → serial `DELETE` per item → `GET @quota-usage` again;
+"freed" = difference of `total`. Rebuild = `POST @quota-rebuild` → refetch.
+
+**Volto control panel**: `GET/PATCH @controlpanels/collective-quota` (phase 3 adapter:
+`data`, `effective`, `sources`, `locked`) rendered by the add-on's own route with the
+usage segment and rebuild button on top of Volto's generic form.
+
 ## 7. Package layout (target state after phase 7)
 
 ```
@@ -451,10 +509,15 @@ backend/src/collective/quota/
   browser/viewlets.py         QuotaWarningViewlet
   browser/addform_guard.py    QuotaAddFormValidator (hook B)
   browser/templates/usage.pt, delete_confirmation.pt, warning_viewlet.pt, controlpanel.pt
+  listing.py                  LIMITS, parse_limit, Item, biggest_items (phase 8; shared listing)
+  summary.py                  level_message, policy_hint, usage_summary (phase 8; moved from browser/)
   restapi/__init__.py
   restapi/configure.zcml
   restapi/deserializer.py     QuotaAwareDeserializer(s) (hook C)
   restapi/query.py            BlobSizeIndexQueryParser (integer @search queries on blob_size)
+  restapi/usage.py            QuotaUsageGet (@quota-usage) + usage_payload (phase 8)
+  restapi/expansion.py        Quota expansion element (phase 8)
+  restapi/rebuild.py          QuotaRebuildPost (@quota-rebuild) (phase 8)
   setuphandlers/__init__.py   HiddenProfiles, post_install (populate index)
   upgrades/                   utils.py (run_import_step, rebuild_usage) + configure.zcml
   profiles/default/           metadata.xml, browserlayer.xml, catalog.xml, rolemap.xml,
@@ -463,6 +526,20 @@ backend/src/collective/quota/
   locales/                    collective.quota.pot + .po files
 backend/scripts/rebuild_blob_size.py   zconsole script for very large sites
 backend/tests/                conftest.py + test modules per phase
+
+frontend/packages/volto-collective-quota/          (phase 9)
+  src/index.ts                applyConfig: expander, slot, appExtras, routes, reducer, icon
+  src/constants/ActionTypes.ts
+  src/actions/quota.ts        getQuotaUsage, rebuildQuota
+  src/reducers/quota.ts
+  src/helpers/format.ts       human(bytes) matching plone.base.utils.human_readable_size
+  src/helpers/predicates.ts   notOnRoutes slot predicate
+  src/components/QuotaBanner/            slot component + css
+  src/components/UserMenuEntry/          Plug into toolbar-user-menu
+  src/components/QuotaUsage/             page: QuotaUsage, UsageSummary, ItemsTable, DeleteModal + css
+  src/components/QuotaControlpanel/      custom /controlpanel/collective-quota
+  locales/                    volto.pot + de/en/es/pt_BR
+frontend/cypress/tests/quota.cy.js
 ```
 
 ## 8. Performance notes
@@ -488,11 +565,24 @@ backend/tests/                conftest.py + test modules per phase
 - `@@quota-delete` enforces `Delete objects` per item and `plone.protect` CSRF tokens on
   the confirm step; `@@quota-rebuild` is POST-only with a token.
 - `@@quota-controlpanel` is behind `ManageSettings`.
+- REST (phase 8): `@quota-usage` and the `quota` expander require `ViewDiskUsage`
+  (the expander returns nothing rather than erroring, so anonymous content responses
+  are byte-identical to a site without the add-on); `@quota-rebuild` requires
+  `ManageSettings` and marks the request `IDisableCSRFProtection` like plone.restapi's
+  own write services. The listing stays a restricted catalog query.
+- Volto (phase 9): no role logic in the client; every element renders only with a
+  token and a positive backend signal (R2). Deletion goes through plone.restapi's
+  `DELETE`, so `Delete objects` is enforced per item by the backend.
 
 ## 10. Install, upgrade, uninstall
 
 - Profile dependencies: `plone.app.registry:default` and `plone.restapi:default` (a
-  plain Classic site does not install restapi on its own; see phase 1). No `plone.volto`.
+  plain Classic site does not install restapi on its own; see phase 1). No `plone.volto`
+  at runtime; the `acceptance` extra (phase 8) installs it only so the Volto acceptance
+  server (`make acceptance-backend-start`, `Dockerfile.acceptance`) can run, and the
+  `default` profile never depends on `plone.volto:default`.
+- The Volto add-on is installed in a Volto project the usual way (`package.json`
+  dependency + `volto.config.js` addons). It has no backend profile of its own.
 - Profile version starts at `1000`. Every schema/registry/catalog change bumps it and
   ships an upgrade step (`upgrades/`). `rebuild_usage()` is the reusable repair step.
 - Uninstall removes: both browser layers, index + column, registry records, configlet,
@@ -517,6 +607,18 @@ Facts the design relies on, checked against upstream sources on 2026-10-15:
 - `transaction.interfaces.ITransaction`: `addBeforeCommitHook(hook, args=(), kws=None)` runs hooks before the two-phase commit and an exception aborts the transaction; `set_data(ob, data)` / `data(ob)` provide transaction-scoped storage (`transaction` ≥ 2.0; Plone 6 ships ≥ 3.1). Confirm both on the installed version.
 - `OFS` fires `ObjectAddedEvent` for adds and copy/paste targets, and `ObjectMovedEvent` (not an added event) for moves and renames.
 
+Checked on 2026-10-16 for phases 8–9 (plone.restapi 10.0.4, plone.rest 6.0.0, plone.protect 6.0.0, Volto 19.5.0):
+
+- `plone.restapi.serializer.expansion.expandable_elements` merges every `IExpandableElement` adapter's result with `update_dict_recursively`, so an adapter returning `{}` adds no key; expanders are looked up for `(context, request)` and `expand=` accepts repeated parameters or a comma-separated list.
+- `plone.rest`'s `plone:service` directive takes a `layer` attribute (`zcml.py`), so services can be registered for `IQuotaRestapiLayer`.
+- `plone.protect.auto.ProtectTransform._check` demands a form token whenever the request registered writes unless the request provides `IDisableCSRFProtection`; plone.restapi's write services (`services/content/add.py`, `services/workflow/transition.py`, …) set that interface themselves.
+- `plone.restapi.services.content.delete.ContentDelete` calls `parent.manage_delObjects` and swallows `LinkIntegrityNotificationException`; `services/linkintegrity/get.py` answers `GET @linkintegrity?uids=…` with per-item `breaches` and `items_total`.
+- `plone.restapi.controlpanels.RegistryConfigletPanel` derives `group` from the configlet category title when the class sets none (`_get_group_title`).
+- Volto 19.5.0 (`packages/volto/src`): `App.jsx` renders `<SlotRenderer name="aboveApp" content={content} />` before the header, inside `PluggablesProvider`, and `<AppExtras>` at the end; `config/slots.js` shows slot entries with `predicates` (e.g. `onlyCMSUI` reading `location.pathname`); `Toolbar/PersonalTools.jsx` renders `<Pluggable name="toolbar-user-menu" />` after "Site Setup"; `config/index.js` defines `settings.apiExpanders` (`{ match, GET_CONTENT: [...] }`), `settings.appExtras` (`{ match, ignore, component, props }` consumed by `theme/AppExtras/AppExtras.jsx` with `matchPath`), `settings.nonContentRoutes` (strings or regexes, `config/NonContentRoutes.jsx`), `settings.controlPanelsIcons`, `addonRoutes` (placed before the default routes in `routes.js`, so `/controlpanel/collective-quota` beats `/controlpanel/:id`), `addonReducers`.
+- Volto 19.5.0 `Controlpanels/Controlpanel.jsx` is the generic control panel (Form + `getControlpanel`/`updateControlpanel`, invariant errors via `extractInvariantErrors` into a toast); `Contents/ContentsDeleteModal.jsx` uses `linkIntegrityCheck(uids)` from `actions/content/content.js` and reads `state.linkIntegrity.result`; `deleteContent(urls)` dispatches serial `DELETE`s. Volto 19.5.0 pins react 18.2, react-router(-dom) 5.2, react-redux 8.1, react-intl 3.12, semantic-ui-react 2.1.5.
+- Volto's Cypress commands (`packages/volto/cypress/support/commands.js`) provide `autologin`, `createContent` (with base64 `File`/`Image` payloads), `removeContent`, `setRegistry(record, value)`, `navigate`, `intercept` helpers used by the phase 9 acceptance tests.
+- `plone/server-acceptance` images (plone-backend `Dockerfile.acceptance`, branch 6.2.x) run `plone.app.robotframework.testing.VOLTO_ROBOT_TESTING` with `CONFIGURE_PACKAGES=…plone.volto,plone.volto.cors` and `APPLY_PROFILES` from the environment; the builder image installs the `Plone` meta package. Whether that already includes `plone.volto` is to be confirmed when building the image; the `acceptance` extra makes it irrelevant.
+
 ## 12. Testing policy
 
 - Coverage gate: `[tool.coverage.report] fail_under = 100` with `branch = true` on the
@@ -533,3 +635,9 @@ Facts the design relies on, checked against upstream sources on 2026-10-15:
   totals) and end to end (real `transaction.commit()` in the integration layer, with
   `plone.api.content.create`, copy/paste, and a direct `obj.file = ...; obj.reindexObject()`
   all aborted when over the limit).
+- REST services (phase 8) are tested on the functional layer with `RelativeSession`
+  as admin, editor, member and anonymous; the three product rules of §1.1 each have an
+  explicit test (anonymous never gets a `quota` key; no limits → `limits_configured`
+  false; `plone.volto` absent from runtime dependencies).
+- Frontend (phase 9): vitest unit tests with a 90 % lines threshold on `src/` plus
+  Cypress acceptance tests as listed in the phase file (see `README.md` conventions).

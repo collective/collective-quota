@@ -15,7 +15,7 @@ without the permission never see it. The check is O(1).
 
 In: viewlet class, template, ZCML registration, `viewlets.xml` ordering, tests.
 
-Out: Volto banner (phase 8).
+Out: Volto banner (phase 9).
 
 ## Design
 

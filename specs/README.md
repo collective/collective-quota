@@ -8,8 +8,11 @@ hard limit (enforced policy), warns editors when the site is getting full, and g
 them a view to find and delete the biggest items.
 
 This folder is the single source of truth for *what* gets built and *in which order*.
-Code lives in `backend/` (Python, Plone 6.2) and, in a later iteration, `frontend/`
-(Volto). This iteration is **backend + Classic UI only**.
+Code lives in `backend/` (Python, Plone 6.2) and `frontend/` (Volto 19 add-on).
+Phases 1–7 (backend + Classic UI) are done. Phases 8–9 add the REST API and the Volto
+add-on. The backend package works on its own; the Volto add-on needs the backend
+add-on installed, and neither one changes how the other behaves (`00-architecture.md`
+§1.1 fixes the rules).
 
 ## How to use these specs
 
@@ -44,9 +47,12 @@ Code lives in `backend/` (Python, Plone 6.2) and, in a later iteration, `fronten
 | 5 | [phase-05-disk-usage-view.md](phase-05-disk-usage-view.md) | `@@quota-usage` biggest-items view, multi-delete with link integrity, user-menu entry | Done | 2, 3 |
 | 6 | [phase-06-warning-viewlet.md](phase-06-warning-viewlet.md) | Soft/hard limit warning viewlet for editors | Done | 2, 3, 5 |
 | 7 | [phase-07-release-readiness.md](phase-07-release-readiness.md) | Uninstall, upgrade scaffolding, i18n, docs, changelog, manual QA | Done | 1–6 |
-| 8 | [phase-08-volto-future.md](phase-08-volto-future.md) | REST endpoints and Volto UI | Deferred | 1–7 |
+| 8 | [phase-08-rest-api.md](phase-08-rest-api.md) | REST API for Volto: `@quota-usage`, `@quota-rebuild`, `quota` expansion, shared listing, `acceptance` extra | Not started | 1–7 |
+| 9 | [phase-09-volto-addon.md](phase-09-volto-addon.md) | Volto add-on: user-menu entry, banner, disk usage page with delete, control panel, i18n, Cypress | Not started | 8 |
 
-Phases 5 and 6 can be developed in parallel once 2 and 3 are done.
+Phases 5 and 6 can be developed in parallel once 2 and 3 are done. Phase 9's components
+can be built against the JSON documented in phase 8 while phase 8 is in progress, but
+phase 9 is `Done` only against the real services.
 
 ## Conventions
 
@@ -54,8 +60,26 @@ Phases 5 and 6 can be developed in parallel once 2 and 3 are done.
   `backend/tests/`. Keep the cookieplone sub-package layout (`browser/`, `controlpanels/`,
   `indexers/`, `vocabularies/`, `upgrades/`, `setuphandlers/`, `profiles/`, `locales/`).
 - **Commands** (run inside `backend/`): `make install`, `make test`, `make test-coverage`,
-  `make lint`, `make format`, `make i18n`, `make create-site`, `make start`.
+  `make lint`, `make format`, `make i18n`, `make create-site`, `make start`,
+  `make acceptance-backend-start`.
   Never call `pip`, `uv add` or `pytest` directly in docs; recommend the `make` targets.
+- **Frontend package**: `volto-collective-quota`, code under
+  `frontend/packages/volto-collective-quota/src/` (cookieplone layout: `actions/`,
+  `reducers/`, `components/`, `helpers/`, `locales/`). Volto core is checked out by
+  mrs-developer at the version in `frontend/mrs.developer.json` (19.5.0).
+- **Frontend commands** (run inside `frontend/`): `make install`, `make start`,
+  `make test`, `make lint`, `make format`, `make i18n`, `make acceptance-backend-start`,
+  `make acceptance-frontend-dev-start`, `make acceptance-test`. Never call `pnpm`
+  directly in docs.
+- **Frontend tests**: vitest for reducers, helpers and component rendering; Cypress for
+  user flows against the acceptance backend. Coverage gate: vitest `--coverage` with a
+  90 % lines threshold on `src/` (excluding `src/index.ts` and `src/config/`),
+  enforced by `make test` and CI. Cypress flows are not counted, so on top of the
+  number every reducer/helper has a unit test, every component a render test, and
+  every user-visible flow a Cypress test (phase 9 lists them).
+- **Frontend dependencies**: the add-on declares no runtime `dependencies`; everything
+  comes from `@plone/volto`. The backend never depends on `plone.volto` at runtime
+  (only the `acceptance` extra, phase 8).
 - **Tests**: pytest with `pytest-plone` fixtures. Integration layer for unit-ish tests,
   functional layer for browser (`plone.testing.zope.Browser`) and REST (`RelativeSession`).
   **Coverage must be 100 % (lines and branches)**; `make test-coverage` enforces it and
@@ -66,7 +90,10 @@ Phases 5 and 6 can be developed in parallel once 2 and 3 are done.
 - **Style**: ruff (config in `backend/pyproject.toml`), zpretty for XML/ZCML. Single-line
   imports, `from` imports first (ruff isort settings already enforce this).
 - **i18n**: message domain `collective.quota`, factory `from collective.quota import _`.
-  All user-facing strings go through it. Run `make i18n` after adding strings.
+  All user-facing strings go through it. Run `make i18n` after adding strings. The Volto
+  add-on uses `react-intl` `defineMessages` and `make i18n` in `frontend/`; strings the
+  backend already translates (banner text, policy titles, action title) are sent
+  translated in the JSON and are **not** duplicated in the add-on.
 - **Changelog**: one towncrier fragment per change in `backend/news/` (types: `breaking`,
   `feature`, `bugfix`, `internal`, `documentation`, `tests`).
 - **Units**: bytes everywhere in code, the catalog, and the registry-derived helpers.
@@ -88,3 +115,6 @@ Phases 5 and 6 can be developed in parallel once 2 and 3 are done.
 | Ledger | Per-transaction integers (start total, approved bytes, added/approved items) that validators write and the commit guard checks |
 | Commit guard | Before-commit hook that aborts any transaction crossing the hard limit without validator approval |
 | Locked setting | A setting whose environment variable is set while `COLLECTIVE_QUOTA_LOCK_SETTINGS` is truthy; the control panel cannot change it |
+| Expansion element | A `plone.restapi` `IExpandableElement` adapter; ours is named `quota` and adds the usage summary to `@components` of any content response when asked with `?expand=quota` |
+| Banner | The editor-only warning: Classic viewlet `collective.quota.warning` or the Volto slot component `collective-quota-banner`; both render `summary.level_message` |
+| Level | `ok`, `warning` or `exceeded`, computed by `get_usage_info()`; the only thing UIs branch on |

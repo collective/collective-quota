@@ -17,7 +17,7 @@ In: uninstall profile completeness + test, upgrades package convention, locales,
 README/docs, example content for the `initial` profile, towncrier fragments, release
 checklist, manual QA script.
 
-Out: Volto (phase 8), PyPI release automation beyond what cookieplone ships.
+Out: Volto (phases 8–9), PyPI release automation beyond what cookieplone ships.
 
 ## Design
 
@@ -196,7 +196,7 @@ Modify:
   overrides it to `1.1.0` and the test extra requires `pytest-plone>=1.1.0`, so the CI
   matrix (6.1 and 6.2) installs a working test runner.
 - The package description (cookieplone placeholder) is replaced everywhere in the
-  backend, the root README and the docs; the frontend keeps it until phase 8.
+  backend, the root README and the docs; the frontend keeps it until phase 9.
 - `plone.exportimport` commits while importing, so `test_example_content.py` runs on
   the functional layer. The scaffold's Volto example-content test is replaced by it.
 - `backend/scripts/rebuild_blob_size.py` is not in the wheel; the docs link to it in
