@@ -236,12 +236,15 @@ reports the failed items and continues. We do not replicate the Classic view's
 
 ### Control panel group
 
-`controlpanels/restapi.py` hard-coded `group = "Products"`. `RegistryConfigletPanel.__init__`
-already replaces `group` with the configlet category title whenever the configlet
-exists, and Plone 6 titles the `Products` category **"Add-on Configuration"**, which is
-the section Volto's Site Setup shows for add-ons; the class attribute was only a dead
-fallback. It is removed so the title has a single source, and a test asserts the group
-in the `@controlpanels` listing (Classic is unaffected: it reads `controlpanel.xml`).
+`controlpanels/restapi.py` sets `group = "Products"`. `RegistryConfigletPanel.__init__`
+replaces `group` with the configlet category title whenever the configlet exists, and
+Plone 6 titles the `Products` category **"Add-on Configuration"**, which is the section
+Volto's Site Setup shows for add-ons. The class attribute stays: it is the only value
+when the configlet is not registered (for example on a site installed before the
+control panel existed), and without it `@controlpanels/collective-quota` fails with
+`AttributeError` (500). Tests assert the derived group in the `@controlpanels` listing
+and the fallback without the configlet (Classic is unaffected: it reads
+`controlpanel.xml`).
 
 ### Acceptance extra and `plone.volto`
 
@@ -298,7 +301,7 @@ Modify:
 - `backend/src/collective/quota/browser/usage.py` (use `listing`)
 - `backend/src/collective/quota/browser/summary.py` (re-export shim)
 - `backend/src/collective/quota/restapi/configure.zcml`
-- `backend/src/collective/quota/controlpanels/restapi.py` (drop `group`)
+- `backend/src/collective/quota/controlpanels/restapi.py` (comment on the `group` fallback)
 - `backend/pyproject.toml`, `backend/mx.ini`, `backend/Dockerfile.acceptance`,
   `backend/Makefile` (`INSTALL_PRODUCTS`, `plone.volto:default`)
 - `backend/tests/test_scaffold.py`, `backend/tests/test_controlpanel_restapi.py` (group)
@@ -312,7 +315,7 @@ Modify:
 - [x] `GET @quota-usage` service + ZCML
 - [x] `quota` expander + ZCML
 - [x] `POST @quota-rebuild` service + ZCML
-- [x] Control panel `group` removed; REST listing shows "Add-on Configuration"
+- [x] Control panel group: REST listing shows "Add-on Configuration"; `group` kept as the fallback when the configlet is missing
 - [x] `acceptance` extra, `mx.ini`, `Dockerfile.acceptance` sed; `make acceptance-backend-start` starts locally and answers `GET /plone/@quota-usage` with the admin user
 - [x] README "REST API" section, docs reference page, news fragment
 - [x] `make lint`, `make test-coverage` at 100 %

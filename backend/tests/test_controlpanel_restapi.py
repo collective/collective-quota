@@ -26,6 +26,14 @@ class TestGet:
         panels = {panel["@id"].rsplit("/", 1)[-1]: panel for panel in response.json()}
         assert panels["collective-quota"]["group"] == "Add-on Configuration"
 
+    def test_get_without_configlet(self, api_session, functional_portal):
+        """A site whose configlet is missing still serves the panel."""
+        functional_portal.portal_controlpanel.unregisterConfiglet("collective-quota")
+        transaction.commit()
+        response = api_session().get(URL)
+        assert response.status_code == 200
+        assert response.json()["group"] == "Products"
+
     def test_get_exposes_effective_values_sources_and_locked(
         self, api_session, functional_portal, quota_env, set_quota
     ):

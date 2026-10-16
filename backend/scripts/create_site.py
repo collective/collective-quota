@@ -48,7 +48,9 @@ site_id = "Plone"
 payload = {
     "title": "Collective Quota",
     "profile_id": _DEFAULT_PROFILE,
-    "extension_ids": (_TYPES_PROFILE,),
+    # A Classic site: without the "classic" distribution (plone.classicui),
+    # Barceloneta must be applied explicitly or the site has no theme.
+    "extension_ids": (_TYPES_PROFILE, "plonetheme.barceloneta:default"),
     "setup_content": False,
     "default_language": "en",
     "portal_timezone": "UTC",

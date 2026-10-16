@@ -47,6 +47,9 @@ class QuotaConfigletPanel(RegistryConfigletPanel):
     configlet_id = "collective-quota"
     configlet_category_id = "Products"
     title = _("Quota")
+    # plone.restapi replaces this with the configlet category title; it is
+    # only used, and needed, when the configlet is not registered.
+    group = "Products"
 
 
 @implementer(IQuotaSettings)
