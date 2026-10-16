@@ -59,7 +59,7 @@ jobs:
         uses: astral-sh/setup-uv@v6
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           package_json_file: ${{ inputs.working-directory }}/package.json
 
