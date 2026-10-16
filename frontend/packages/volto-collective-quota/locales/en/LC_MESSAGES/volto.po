@@ -10,3 +10,311 @@ msgstr ""
 "Content-Type: \n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
+
+#. Default: "Back"
+#: components/QuotaUsage/QuotaUsage
+msgid "Back"
+msgstr ""
+
+#. Default: "Cancel"
+#: components/QuotaControlpanel/QuotaControlpanel
+#: components/QuotaUsage/DeleteModal
+msgid "Cancel"
+msgstr ""
+
+#. Default: "Changes saved."
+#: components/QuotaControlpanel/QuotaControlpanel
+msgid "Changes saved."
+msgstr ""
+
+#. Default: "Delete"
+#: components/QuotaUsage/DeleteModal
+msgid "Delete"
+msgstr ""
+
+#. Default: "Delete selected items?"
+#: components/QuotaUsage/DeleteModal
+msgid "Delete selected items?"
+msgstr ""
+
+#. Default: "Delete this item?"
+#: components/QuotaUsage/DeleteModal
+msgid "Delete this item?"
+msgstr ""
+
+#. Default: "Deleting this item will break {brokenReferences} {variation}."
+#: components/QuotaUsage/DeleteModal
+msgid "Deleting this item will break {brokenReferences} {variation}."
+msgstr ""
+
+#. Default: "Edit"
+#: components/QuotaUsage/ItemsTable
+msgid "Edit"
+msgstr ""
+
+#. Default: "Error"
+#: components/QuotaControlpanel/QuotaControlpanel
+#: components/QuotaUsage/QuotaUsage
+msgid "Error"
+msgstr ""
+
+#. Default: "Info"
+#: components/QuotaControlpanel/QuotaControlpanel
+#: components/QuotaUsage/QuotaUsage
+msgid "Info"
+msgstr ""
+
+#. Default: "Save"
+#: components/QuotaControlpanel/QuotaControlpanel
+msgid "Save"
+msgstr ""
+
+#. Default: "Some items are referenced by other contents. Deleting them will break {brokenReferences} {variation}."
+#: components/QuotaUsage/DeleteModal
+msgid "Some items are referenced by other contents. Deleting them will break {brokenReferences} {variation}."
+msgstr ""
+
+#. Default: "Some items contain subitems. Deleting them will also delete their {containedItemsToDelete} {variation} inside."
+#: components/QuotaUsage/DeleteModal
+msgid "Some items contain subitems. Deleting them will also delete their {containedItemsToDelete} {variation} inside."
+msgstr ""
+
+#. Default: "These items will have broken links"
+#: components/QuotaUsage/DeleteModal
+msgid "These items will have broken links"
+msgstr ""
+
+#. Default: "This item contains subitems. Deleting it will also delete its {containedItemsToDelete} {variation} inside."
+#: components/QuotaUsage/DeleteModal
+msgid "This item contains subitems. Deleting it will also delete its {containedItemsToDelete} {variation} inside."
+msgstr ""
+
+#. Default: "Title"
+#: components/QuotaUsage/ItemsTable
+msgid "Title"
+msgstr ""
+
+#. Default: "Type"
+#: components/QuotaUsage/ItemsTable
+msgid "Type"
+msgstr ""
+
+#. Default: "View links and references to this item"
+#: components/QuotaUsage/DeleteModal
+msgid "View links and references to this item"
+msgstr ""
+
+#. Default: "and {count} more…"
+#: components/QuotaUsage/DeleteModal
+msgid "and {count} more…"
+msgstr ""
+
+#. Default: "Actions"
+#: components/QuotaUsage/ItemsTable
+msgid "collective.quota.actions"
+msgstr "Actions"
+
+#. Default: "{size} bytes"
+#: components/QuotaUsage/ItemsTable
+msgid "collective.quota.bytes"
+msgstr "{size} bytes"
+
+#. Default: "You cannot delete this item"
+#: components/QuotaUsage/ItemsTable
+msgid "collective.quota.cannot_delete"
+msgstr "You cannot delete this item"
+
+#. Default: "Current value: {value} ({source})"
+#: components/QuotaControlpanel/QuotaControlpanel
+msgid "collective.quota.current_value"
+msgstr "Current value: {value} ({source})"
+
+#. Default: "These items could not be deleted: {titles}"
+#: components/QuotaUsage/QuotaUsage
+msgid "collective.quota.delete_failed"
+msgstr "These items could not be deleted: {titles}"
+
+#. Default: "Delete selected ({count})"
+#: components/QuotaUsage/QuotaUsage
+msgid "collective.quota.delete_selected"
+msgstr "Delete selected ({count})"
+
+#. Default: "Deleted {count} items, freeing {size}."
+#: components/QuotaUsage/QuotaUsage
+msgid "collective.quota.deleted"
+msgstr "Deleted {count} items, freeing {size}."
+
+#. Default: "Disk usage"
+#: components/QuotaUsage/QuotaUsage
+msgid "collective.quota.disk_usage"
+msgstr "Disk usage"
+
+#. Default: "No uploaded files or images found."
+#: components/QuotaUsage/QuotaUsage
+msgid "collective.quota.empty"
+msgstr "No uploaded files or images found."
+
+#. Default: "Sizes include only uploaded files and images. Showing the {limit} largest items you can see."
+#: components/QuotaUsage/QuotaUsage
+msgid "collective.quota.footer"
+msgstr "Sizes include only uploaded files and images. Showing the {limit} largest items you can see."
+
+#. Default: "Soft limit: {soft} · Hard limit: {hard} · Policy: {policy}"
+#: components/QuotaUsage/UsageSummary
+msgid "collective.quota.limits"
+msgstr "Soft limit: {soft} · Hard limit: {hard} · Policy: {policy}"
+
+#. Default: "Location"
+#: components/QuotaUsage/ItemsTable
+msgid "collective.quota.location"
+msgstr "Location"
+
+#. Default: "Locked by environment variable {variable}."
+#: components/QuotaControlpanel/QuotaControlpanel
+msgid "collective.quota.locked_field"
+msgstr "Locked by environment variable {variable}."
+
+#. Default: "These settings are fixed by environment variables and cannot be changed here: {fields}."
+#: components/QuotaControlpanel/QuotaControlpanel
+msgid "collective.quota.locked_message"
+msgstr "These settings are fixed by environment variables and cannot be changed here: {fields}."
+
+#. Default: "Modified"
+#: components/QuotaUsage/ItemsTable
+msgid "collective.quota.modified"
+msgstr "Modified"
+
+#. Default: "No limits are configured. Only the listing below is available."
+#: components/QuotaUsage/UsageSummary
+msgid "collective.quota.no_limits"
+msgstr "No limits are configured. Only the listing below is available."
+
+#. Default: "collective.quota is not installed on the backend."
+#: components/QuotaUsage/QuotaUsage
+msgid "collective.quota.not_installed"
+msgstr "collective.quota is not installed on the backend."
+
+#. Default: "Rebuild usage data"
+#: components/QuotaUsage/UsageSummary
+msgid "collective.quota.rebuild"
+msgstr "Rebuild usage data"
+
+#. Default: "Rebuilding the usage data failed."
+#: components/QuotaUsage/QuotaUsage
+msgid "collective.quota.rebuild_failed"
+msgstr "Rebuilding the usage data failed."
+
+#. Default: "Usage data rebuilt: {count} items, {total} in total."
+#: components/QuotaUsage/QuotaUsage
+msgid "collective.quota.rebuilt"
+msgstr "Usage data rebuilt: {count} items, {total} in total."
+
+#. Default: "Reset to defaults"
+#: components/QuotaControlpanel/QuotaControlpanel
+msgid "collective.quota.reset"
+msgstr "Reset to defaults"
+
+#. Default: "Clear every value saved in this control panel? Environment variables or built-in defaults will apply."
+#: components/QuotaControlpanel/QuotaControlpanel
+msgid "collective.quota.reset_confirm"
+msgstr "Clear every value saved in this control panel? Environment variables or built-in defaults will apply."
+
+#. Default: "Locked settings ({fields}) are fixed by the environment and stay as they are."
+#: components/QuotaControlpanel/QuotaControlpanel
+msgid "collective.quota.reset_confirm_locked"
+msgstr "Locked settings ({fields}) are fixed by the environment and stay as they are."
+
+#. Default: "Settings reset. Environment variables or built-in defaults apply now."
+#: components/QuotaControlpanel/QuotaControlpanel
+msgid "collective.quota.reset_done"
+msgstr "Settings reset. Environment variables or built-in defaults apply now."
+
+#. Default: "Review large files"
+#: components/QuotaBanner/QuotaBanner
+msgid "collective.quota.review_files"
+msgstr "Review large files"
+
+#. Default: "Select {title}"
+#: components/QuotaUsage/ItemsTable
+msgid "collective.quota.select"
+msgstr "Select {title}"
+
+#. Default: "Select all items you can delete"
+#: components/QuotaUsage/ItemsTable
+msgid "collective.quota.select_all"
+msgstr "Select all items you can delete"
+
+#. Default: "Quota settings"
+#: components/QuotaUsage/UsageSummary
+msgid "collective.quota.settings"
+msgstr "Quota settings"
+
+#. Default: "Show"
+#: components/QuotaUsage/QuotaUsage
+msgid "collective.quota.show"
+msgstr "Show"
+
+#. Default: "Size"
+#: components/QuotaUsage/ItemsTable
+msgid "collective.quota.size"
+msgstr "Size"
+
+#. Default: "default"
+#: components/QuotaControlpanel/QuotaControlpanel
+msgid "collective.quota.source_default"
+msgstr "default"
+
+#. Default: "from environment"
+#: components/QuotaControlpanel/QuotaControlpanel
+msgid "collective.quota.source_env"
+msgstr "from environment"
+
+#. Default: "from control panel"
+#: components/QuotaControlpanel/QuotaControlpanel
+msgid "collective.quota.source_registry"
+msgstr "from control panel"
+
+#. Default: "Total: {total}"
+#: components/QuotaUsage/UsageSummary
+msgid "collective.quota.total"
+msgstr "Total: {total}"
+
+#. Default: "Total: {total} of {hard} ({percent} %)"
+#: components/QuotaUsage/UsageSummary
+msgid "collective.quota.total_of_hard"
+msgstr "Total: {total} of {hard} ({percent} %)"
+
+#. Default: "item"
+#: components/QuotaUsage/DeleteModal
+msgid "item"
+msgstr ""
+
+#. Default: "items"
+#: components/QuotaUsage/DeleteModal
+msgid "items"
+msgstr ""
+
+#. Default: "Delete item and break links"
+#: components/QuotaUsage/DeleteModal
+msgid "link-integrity: Delete item and break links"
+msgstr ""
+
+#. Default: "Checking references..."
+#: components/QuotaUsage/DeleteModal
+msgid "link-integrity: loading references"
+msgstr ""
+
+#. Default: "reference"
+#: components/QuotaUsage/DeleteModal
+msgid "reference"
+msgstr ""
+
+#. Default: "references"
+#: components/QuotaUsage/DeleteModal
+msgid "references"
+msgstr ""
+
+#. Default: "refers to"
+#: components/QuotaUsage/DeleteModal
+msgid "refers to"
+msgstr ""

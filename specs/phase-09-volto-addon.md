@@ -1,6 +1,6 @@
 # Phase 9 — Volto add-on (`volto-collective-quota`)
 
-Status: Not started
+Status: In progress (code, unit and Cypress tests done; manual QA and release checklist open)
 Depends on: Phase 8 (services and expander; the JSON in that file is the contract)
 Last updated: 2026-10-16
 
@@ -109,7 +109,9 @@ Actions go through Volto's API middleware, so paths are relative to the API root
 | link-integrity preview | Volto's `linkIntegrityCheck(uids)` | `state.linkIntegrity` (Volto) |
 
 Reducer shape mirrors Volto's `{loading, loaded, error}` convention. `error` keeps
-`status` so the page can tell `401`, `403` and `404` apart.
+`status` so the page can tell `401`, `403` and `404` apart. "Reset to defaults" uses
+Volto's own `updateControlpanel(url, data)` (state `controlpanels.update`), so the
+slice needs no third action.
 
 ### User menu entry (`src/components/UserMenuEntry/UserMenuEntry.jsx`)
 
@@ -183,8 +185,10 @@ Behaviour:
 
 - Fetch on mount and when `limit` changes (`?limit=` in the URL so it is shareable and
   survives reload; `parse_limit` on the server makes bad values safe).
-- `401` → `<Redirect to={`/login?return_url=${pathname}`} />`; `403` → Volto's
-  `Unauthorized`; `404` → the "not installed on the backend" message (rule 3).
+- `401` and `403` → Volto's `Unauthorized`, which itself redirects users without a
+  token to `login?return_url=…` and shows the "unauthorized" page to logged-in users
+  (plone.restapi answers `401` to both, see phase 8); `404` → the "not installed on the
+  backend" message (rule 3).
 - Dates: `FormattedDate` from Volto with the long format used by the Contents view.
 - After delete or rebuild: refetch with the same limit, clear the selection.
 
@@ -201,16 +205,21 @@ Flow:
 1. Open → dispatch `linkIntegrityCheck(selectedUIDs)`; show the selected titles and,
    from `state.linkIntegrity.result`, the breaches whose source is not itself selected
    and the total of contained items (same filtering as the core modal; at most 10
-   breaches listed, then "and N more", with the "Links and references" link).
-2. Confirm → `deleteContent(selectedIds)` (serial). Remember `total` before.
+   breaches listed, then "and N more", with the "Links and references" link for a
+   single item).
+2. Confirm → one `deleteContent(path)` per selected item, awaited in order (a single
+   serial `deleteContent(paths)` stops at the first failure and cannot say which
+   items failed). Remember `total` before.
 3. On success → refetch; toast `Deleted {count} items, freeing {size}` where `size` is
    `human(before.total - after.total)` (so folders' contents count, like Classic).
 4. On a per-item failure (locked by someone else, or a race) → toast error listing the
    titles that failed; still refetch so the table is accurate.
 
 `human(bytes)` lives in `src/helpers/format.ts` and mirrors `plone.base.utils.human_readable_size`
-(1 KB = 1024 B, one decimal) so the toast matches the backend's numbers; unit-tested
-against the same examples.
+(1 KB = 1024 B, one decimal, never bytes: `0` → `0 KB`, `1`–`1023` → `1 KB`) so the
+toast matches the backend's numbers. Python's `f"{x:.1f}"` rounds exact ties to even
+(2.25 MB → `2.2 MB`) where `Number.toFixed` rounds them up, so `human()` rounds ties
+to even itself; unit-tested against the backend's outputs.
 
 ### Control panel (`/controlpanel/collective-quota`, `src/components/QuotaControlpanel/QuotaControlpanel.jsx`)
 
@@ -261,8 +270,9 @@ the component; semantic-ui classes for everything else. No theme, `"theme": ""` 
 Unit (vitest, `make test`, run in CI by `frontend-unit.yml`):
 
 - `src/reducers/quota.test.ts` — pending/success/fail transitions, `error.status` kept.
-- `src/helpers/format.test.ts` — `human()` against the backend's examples (0 B, 1023 B,
-  1.0 KB, 2.0 MB, 3.4 GB).
+- `src/helpers/format.test.ts` — `human()` against the backend's outputs (`0 KB`,
+  `1 KB` for 1–1023 B, `1.0 KB`, `2.0 MB`, `3.4 GB`, ties such as 2.25 MB → `2.2 MB`).
+- `src/actions/quota.test.ts` — request shapes.
 - `src/helpers/predicates.test.ts` — `notOnRoutes`.
 - `src/components/QuotaBanner/QuotaBanner.test.jsx` — nothing without token; nothing when
   `@components.quota` is absent; nothing for level `ok`; renders warning / negative with
@@ -278,16 +288,29 @@ Unit (vitest, `make test`, run in CI by `frontend-unit.yml`):
   from `sources`; locked field rendered disabled with the lock note; "Reset to
   defaults" dispatches a PATCH with `null` for exactly the non-locked fields.
 
-Coverage: vitest runs with `--coverage` (v8 provider) and a `90 %` lines threshold on
-`src/`, excluding `src/index.ts` and `src/config/`, configured in
-`vitest.config.mjs`; `make test` fails below it and `frontend-unit.yml` runs it.
+Coverage: vitest runs with `--coverage` (v8 provider, devDependency
+`@vitest/coverage-v8`) and a `90 %` lines threshold on `src/`, excluding
+`src/index.ts`, `src/config/` and the test helper `src/test-utils.jsx`, configured in
+`vitest.config.mjs`; `make test` (`vitest run --coverage`; `pnpm test:watch` keeps the
+watch mode) fails below it and `frontend-unit.yml` runs it through `make ci-test`.
+
+`vitest.config.mjs` is the add-on's own: Volto's config wraps everything in
+`test.projects` with its own `resolve.alias`, which would hide the add-on's aliases.
+It reuses Volto's plugins, aliases and setup files, and resolves the libraries that
+come with Volto (`react-redux`, `react-router-dom`, `react-intl`, `react-intl-redux`,
+`react-toastify`, `semantic-ui-react`, `redux-mock-store`) from Volto's
+`node_modules`, because pnpm's strict layout does not let the add-on see them and the
+add-on declares no runtime dependencies. Component tests mock Volto's `Toolbar`,
+`Unauthorized` and (control panel) `Form`, which need the whole app state.
 
 Acceptance (Cypress, `frontend/cypress/tests/quota.cy.js`, backend from
 `make acceptance-backend-start`, which applies `collective.quota:default`):
 
-- `cy.setRegistry('collective.quota.soft_limit_mb', 1)` and `hard_limit_mb` `2`,
-  `over_limit_policy` `allow`; create Files through `cy.createContent` with a generated
-  base64 payload (≈ 1.5 MB) so the site crosses the soft limit.
+- `cy.setRegistry('collective.quota.soft_limit_mb', 1)` and `hard_limit_mb` `10`,
+  `over_limit_policy` `allow`; create Files through `cy.request` with a generated
+  base64 payload (≈ 1.5 MB) so the site crosses the soft limit (`cy.createContent`
+  has a fixed file body). Containers are Documents: with `plone.volto:default` the
+  site root does not allow Folders.
 - As admin (`cy.autologin()`): banner visible on `/` and on a folder; user menu has "Disk
   usage"; `/quota-usage` lists the files, biggest first; limit buttons change the rows;
   select two → delete → confirmation lists them → confirm → toast "freeing" → rows gone →
@@ -300,16 +323,24 @@ Acceptance (Cypress, `frontend/cypress/tests/quota.cy.js`, backend from
 - Control panel: `/controlpanel/collective-quota` shows the usage segment; save soft 1 /
   hard 2; "Rebuild usage data" toasts the item count; "Reset to defaults" → confirm →
   fields show `0` / `block_all` / `10` with source "default" and the banner disappears.
+- Backend add-on not installed: `POST @addons/collective.quota/uninstall` → no banner,
+  no menu entry, `/quota-usage` shows the "not installed" message (rule 3).
 
-CI: `.github/workflows/frontend.yml` currently runs i18n and unit only. Add an
-`acceptance` job (build `backend/Dockerfile.acceptance`, start it, `make
-ci-acceptance-test`) following cookieplone's project template; it depends on `unit`.
+CI: `.github/workflows/frontend.yml` gets an `acceptance` job that depends on `unit`:
+`make acceptance-image-build` in `backend/` (new `plone-version` input, passed from
+`main.yml`), `make install`, `make ci-acceptance-backend-start` (the frontend
+Makefile's `DOCKER_IMAGE_ACCEPTANCE` now points at this project's
+`…-backend-acceptance` image instead of the stock `plone/server-acceptance`, which
+lacks the add-on), `make acceptance-frontend-prod-start`, `wait-on`, `make
+ci-acceptance-test`; screenshots and server logs are uploaded on failure. `release`
+waits for it.
 
 ### Documentation and changelog
 
 - `frontend/README.md`: replace the scaffold "Features" placeholder with the four
   features, the requirement "backend add-on `collective.quota` installed", and the
-  rules in "Product rules". Keep the cookieplone installation/development sections.
+  rules in "Product rules". Keep the cookieplone installation/development sections
+  (the "Volto 17 and earlier" section goes: Volto 18 and earlier are non-goals).
 - `docs/docs/how-to-guides/use-with-volto.md`: install both halves, where things appear
   in Volto (menu, banner, page, control panel), and that the feature set equals Classic.
 - `frontend/packages/volto-collective-quota/news/+initial.feature`.
@@ -318,7 +349,7 @@ ci-acceptance-test`) following cookieplone's project template; it depends on `un
 ### Release checklist
 
 - [ ] `frontend/packages/volto-collective-quota/package.json` version `1.0.0-alpha.0` → release-it alpha
-- [ ] `make lint`, `make test`, `make i18n` clean in `frontend/`
+- [x] `make lint`, `make test`, `make i18n` clean in `frontend/`
 - [ ] Storybook builds (cookieplone deploys it to GitHub Pages)
 - [ ] `make build-images` builds the frontend image with `VOLTO_VERSION` from `repository.toml`
 - [ ] Tag + publish to npm — maintainers
@@ -332,13 +363,17 @@ Create (under `frontend/packages/volto-collective-quota/src/` unless noted):
 - `components/UserMenuEntry/UserMenuEntry.jsx`
 - `components/QuotaUsage/QuotaUsage.jsx`, `UsageSummary.jsx`, `ItemsTable.jsx`, `DeleteModal.jsx`, `QuotaUsage.css`
 - `components/QuotaControlpanel/QuotaControlpanel.jsx`
-- the `*.test.*` files listed above
+- the `*.test.*` files listed above, `src/test-utils.jsx` (mock store whose request
+  actions return promises, render helper, sample `@quota-usage` payload)
 - `frontend/cypress/tests/quota.cy.js`
 - `frontend/packages/volto-collective-quota/news/+initial.feature`
 - `docs/docs/how-to-guides/use-with-volto.md`
 
 Modify:
-- `src/index.ts`, `src/config/settings.ts` (or fold into `index.ts`)
+- `src/index.ts` (`src/config/settings.ts` stays the scaffold's empty hook)
+- `package.json`, `vitest.config.mjs`, `frontend/package.json` (`test` with coverage),
+  `frontend/Makefile` (`DOCKER_IMAGE_ACCEPTANCE`)
+- `.github/workflows/main.yml` (`plone-version` for the frontend workflow)
 - `locales/**`
 - `frontend/README.md`, root `README.md`, `docs/docs/how-to-guides/index.md`
 - `.github/workflows/frontend.yml`
@@ -346,19 +381,19 @@ Modify:
 
 ## Tasks
 
-- [ ] `make install` in `frontend/` on a clean checkout (Volto 19.5 via mrs-developer); `make start` against `make acceptance-backend-start`
-- [ ] `src/index.ts` configuration (expander, slot, appExtras, routes, reducer, icon)
-- [ ] Redux slice + helpers with unit tests
-- [ ] User menu entry
-- [ ] Banner (slot `aboveApp`, predicate)
-- [ ] Disk usage page: summary, limit selector, table, error states
-- [ ] Delete modal with link-integrity preview and "freed" toast
-- [ ] Control panel with provenance, locked fields, rebuild, "Reset to defaults"
-- [ ] vitest coverage threshold (90 % lines) configured and passing
-- [ ] i18n extracted; `en` and `es` translated
-- [ ] Cypress suite green locally against the acceptance backend
-- [ ] CI acceptance job
-- [ ] README, docs how-to, news fragment
+- [x] `make install` in `frontend/` on a clean checkout (Volto 19.5 via mrs-developer); `make start` against `make acceptance-backend-start`
+- [x] `src/index.ts` configuration (expander, slot, appExtras, routes, reducer, icon)
+- [x] Redux slice + helpers with unit tests
+- [x] User menu entry
+- [x] Banner (slot `aboveApp`, predicate)
+- [x] Disk usage page: summary, limit selector, table, error states
+- [x] Delete modal with link-integrity preview and "freed" toast
+- [x] Control panel with provenance, locked fields, rebuild, "Reset to defaults"
+- [x] vitest coverage threshold (90 % lines) configured and passing
+- [x] i18n extracted; `en` and `es` translated
+- [x] Cypress suite green locally against the acceptance backend
+- [x] CI acceptance job (written; the backend acceptance image builds and serves `@quota-usage` locally; first run on GitHub pending)
+- [x] README, docs how-to, news fragment
 - [ ] Manual QA (below) on the docker-compose stack (`make stack-start`)
 
 ## Manual QA (Volto)

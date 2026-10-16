@@ -18,6 +18,9 @@ on:
       volto-version:
         required: true
         type: string
+      plone-version:
+        required: true
+        type: string
       storybook-deploy:
         required: false
         type: boolean
@@ -49,6 +52,62 @@ jobs:
       node-version: ${{ inputs.node-version }}
       working-directory: ${{ inputs.working-directory }}
 
+  acceptance:
+    name: "Frontend: Acceptance tests"
+    runs-on: ubuntu-latest
+    needs:
+      - unit
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: ${{ inputs.working-directory }}/package.json
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Build the backend acceptance image
+        working-directory: backend
+        run: make acceptance-image-build PLONE_VERSION=${{ inputs.plone-version }}
+
+      - name: Install the frontend
+        run: make install
+
+      - name: Start the backend
+        run: |
+          make ci-acceptance-backend-start > ../backend-acceptance.log 2>&1 &
+          npx --yes wait-on --timeout 180000 http-get://127.0.0.1:55001/plone
+
+      - name: Start the frontend
+        run: |
+          make acceptance-frontend-prod-start > ../frontend-acceptance.log 2>&1 &
+          npx --yes wait-on --timeout 600000 http-get://127.0.0.1:3000
+
+      - name: Run Cypress
+        run: make ci-acceptance-test
+
+      - name: Upload Cypress artifacts and server logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress
+          path: |
+            ${{ inputs.working-directory }}/core/packages/volto/cypress/screenshots
+            ${{ inputs.working-directory }}/core/packages/volto/cypress/videos
+            backend-acceptance.log
+            frontend-acceptance.log
+
   storybook:
     name: "Storybook"
     uses: plone/meta/.github/workflows/frontend-storybook.yml@2.x
@@ -70,6 +129,7 @@ jobs:
       - code-analysis
       - i18n
       - unit
+      - acceptance
       - storybook
     permissions:
       contents: read
@@ -94,6 +154,7 @@ jobs:
       - code-analysis
       - i18n
       - unit
+      - acceptance
       - storybook
       - release
     steps:
@@ -105,5 +166,6 @@ jobs:
           echo '| code-analysis | ${{ needs.code-analysis.result }} |' >> $GITHUB_STEP_SUMMARY
           echo '| i18n | ${{ needs.i18n.result }} |' >> $GITHUB_STEP_SUMMARY
           echo '| unit | ${{ needs.unit.result }} |' >> $GITHUB_STEP_SUMMARY
+          echo '| acceptance | ${{ needs.acceptance.result }} |' >> $GITHUB_STEP_SUMMARY
           echo '| storybook | ${{ needs.storybook.result }} |' >> $GITHUB_STEP_SUMMARY
           echo '| release | ${{ needs.release.result }} |' >> $GITHUB_STEP_SUMMARY

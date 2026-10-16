@@ -13,8 +13,9 @@ Disk quota for Plone sites: measures the space used by uploaded files and images
 - Enforces the hard limit in Classic add and edit forms and in `plone.restapi`, and cancels any other change (copy/paste, scripts, imports) that would cross it.
 - Adds a **Disk usage** page to the user menu that lists the biggest items and deletes several at once, with Plone's link-integrity warnings.
 - Shows editors a warning banner near the soft limit and a stronger one at the hard limit.
+- Works in Volto too: the add-on `volto-collective-quota` brings the same menu entry, banner, disk usage page and control panel, on top of the REST API (`@quota-usage`, `@quota-rebuild`, `?expand=quota`).
 
-The backend add-on, `collective.quota`, works with Plone 6.1 and 6.2 in Classic UI. See [backend/README.md](backend/README.md) for installation and configuration, and [docs/](docs/) for the full documentation. The Volto frontend package is planned for a later release.
+The backend add-on, `collective.quota`, works with Plone 6.1 and 6.2 and stands alone in Classic UI. For Volto 19, install both halves. See [backend/README.md](backend/README.md), [frontend/README.md](frontend/README.md) and [docs/](docs/) for the full documentation.
 
 ## Quick Start 🏁
 

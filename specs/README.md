@@ -48,7 +48,7 @@ add-on installed, and neither one changes how the other behaves (`00-architectur
 | 6 | [phase-06-warning-viewlet.md](phase-06-warning-viewlet.md) | Soft/hard limit warning viewlet for editors | Done | 2, 3, 5 |
 | 7 | [phase-07-release-readiness.md](phase-07-release-readiness.md) | Uninstall, upgrade scaffolding, i18n, docs, changelog, manual QA | Done | 1–6 |
 | 8 | [phase-08-rest-api.md](phase-08-rest-api.md) | REST API for Volto: `@quota-usage`, `@quota-rebuild`, `quota` expansion, shared listing, `acceptance` extra | Done | 1–7 |
-| 9 | [phase-09-volto-addon.md](phase-09-volto-addon.md) | Volto add-on: user-menu entry, banner, disk usage page with delete, control panel, i18n, Cypress | Not started | 8 |
+| 9 | [phase-09-volto-addon.md](phase-09-volto-addon.md) | Volto add-on: user-menu entry, banner, disk usage page with delete, control panel, i18n, Cypress | In progress | 8 |
 
 Phases 5 and 6 can be developed in parallel once 2 and 3 are done. Phase 9's components
 can be built against the JSON documented in phase 8 while phase 8 is in progress, but

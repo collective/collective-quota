@@ -1,6 +1,6 @@
 # Collective Quota (volto-collective-quota)
 
-This product allows to configure a quota limit for Plone sites. It also provides a convenient view for quickly finding the biggest items in case you need to delete
+Volto add-on for [`collective.quota`](https://github.com/collective/collective-quota): disk quota for Plone sites. It shows editors how much space uploaded files and images use, warns them near the limit, and helps them find and delete the biggest items.
 
 [![npm](https://img.shields.io/npm/v/volto-collective-quota)](https://www.npmjs.com/package/volto-collective-quota)
 [![](https://img.shields.io/badge/-Storybook-ff4785?logo=Storybook&logoColor=white&style=flat-square)](https://collective.github.io/volto-collective-quota/)
@@ -9,14 +9,28 @@ This product allows to configure a quota limit for Plone sites. It also provides
 
 ## Features
 
-<!-- List your awesome features here -->
+- **Disk usage** in the personal tools menu, right after "Site Setup".
+- A warning banner above every page when the site reaches the soft limit, and a stronger one at the hard limit. The text comes from the backend, so it always matches what Classic UI shows.
+- The **Disk usage** page (`/quota-usage`): total, limits and policy, then the biggest items (10, 25, 50 or 100). Select several and delete them with Volto's link-integrity confirmation; a toast reports the space freed.
+- A **Quota** control panel (`/controlpanel/collective-quota`): the usual form, plus the current usage, where each value comes from (control panel, environment or default), fields locked by environment variables, "Rebuild usage data" and "Reset to defaults".
+
+## Requirements
+
+- Volto 19.
+- The backend add-on `collective.quota` installed on the Plone site. Without it, the menu entry and the banner stay hidden and the page says the backend add-on is missing.
+
+## Who sees what
+
+- **Never anonymous users.** Everything renders only for logged-in users that the backend allows (permission "collective.quota: View Disk Usage"; the control panel also needs "Manage Quota Settings"). The add-on makes no decision from roles: it waits for the `disk-usage` action, the `quota` expansion or a successful `@quota-usage` response.
+- **No limits, no noise.** With neither a soft nor a hard limit set, no banner appears and the page shows the total and the biggest items with a "No limits are configured" note.
+- **Either half alone.** Classic UI sites need only the backend add-on.
 
 ## Installation
 
 To install your project, you must choose the method appropriate to your version of Volto.
 
 
-### Volto 18 and later
+### Volto 19
 
 Add `volto-collective-quota` to your `package.json`.
 
@@ -38,40 +52,6 @@ If this package provides a Volto theme, and you want to activate it, then add th
 const theme = 'volto-collective-quota';
 ```
 
-### Volto 17 and earlier
-
-Create a new Volto project.
-You can skip this step if you already have one.
-
-```
-npm install -g yo @plone/generator-volto
-yo @plone/volto my-volto-project --addon volto-collective-quota
-cd my-volto-project
-```
-
-Add `volto-collective-quota` to your `package.json`.
-
-```JSON
-"addons": [
-    "volto-collective-quota"
-],
-
-"dependencies": {
-    "volto-collective-quota": "*"
-}
-```
-
-Download and install the new add-on.
-
-```
-yarn install
-```
-
-Start Volto.
-
-```
-yarn start
-```
 
 ## Test installation
 

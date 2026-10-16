@@ -22,7 +22,6 @@ YELLOW=`tput setaf 3`
 REPOSITORY_SETTINGS := $(shell uvx repoplone settings dump)
 
 DOCKER_IMAGE=plone/server-dev:${PLONE_VERSION}
-DOCKER_IMAGE_ACCEPTANCE=plone/server-acceptance:${PLONE_VERSION}
 
 ADDON_NAME := $(shell echo '$(REPOSITORY_SETTINGS)' | jq -r '.frontend.name')
 IMAGE_NAME_PREFIX := $(shell echo '$(REPOSITORY_SETTINGS)' | jq -r '.container_images_prefix')
@@ -31,6 +30,8 @@ IMAGE_NAME_PREFIX_WITH_SEPARATOR := $(IMAGE_NAME_PREFIX)$(IMAGE_NAME_SEPARATOR)
 
 IMAGE_TAG=latest
 IMAGE_NAME=$(IMAGE_NAME_PREFIX_WITH_SEPARATOR)frontend:$(IMAGE_TAG)
+# Backend with collective.quota, built by `make acceptance-image-build` in backend/.
+DOCKER_IMAGE_ACCEPTANCE=$(IMAGE_NAME_PREFIX_WITH_SEPARATOR)backend-acceptance:$(IMAGE_TAG)
 
 # Environment variables to be exported
 export VOLTO_VERSION := $(shell echo '$(REPOSITORY_SETTINGS)' | jq -r '.frontend.volto_version')
