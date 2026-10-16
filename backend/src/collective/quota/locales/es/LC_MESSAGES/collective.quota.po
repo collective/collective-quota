@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2026-10-16 09:50+0000\n"
+"POT-Creation-Date: 2026-10-16 10:16+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -243,6 +243,10 @@ msgstr ""
 
 #: collective/quota/browser/templates/controlpanel.pt:95
 msgid "Review biggest items"
+msgstr ""
+
+#: collective/quota/browser/templates/warning_viewlet.pt:11
+msgid "Review disk usage"
 msgstr ""
 
 #: collective/quota/browser/templates/usage.pt:166

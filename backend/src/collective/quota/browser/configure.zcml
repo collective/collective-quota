@@ -29,6 +29,15 @@
       layer="collective.quota.interfaces.IBrowserLayer"
       />
 
+  <browser:viewlet
+      name="collective.quota.warning"
+      manager="plone.app.layout.viewlets.interfaces.IGlobalStatusMessage"
+      class=".viewlets.QuotaWarningViewlet"
+      template="templates/warning_viewlet.pt"
+      permission="collective.quota.ViewDiskUsage"
+      layer="collective.quota.interfaces.IBrowserLayer"
+      />
+
   <!-- Hook B: block_all refuses new items in Dexterity add forms. -->
   <adapter factory=".addform_guard.QuotaAddFormValidator" />
 

@@ -1,0 +1,18 @@
+<div class="alert d-flex align-items-center justify-content-between gap-3 mb-3"
+     id="collective-quota-warning"
+     role="alert"
+     tal:attributes="
+       class string:alert ${view/css_class} d-flex align-items-center justify-content-between gap-3 mb-3;
+       data-level view/info/level;
+     "
+     i18n:domain="collective.quota"
+>
+  <span tal:content="view/message">Disk usage warning</span>
+  <a class="btn btn-sm btn-outline-dark text-nowrap"
+     href="#"
+     tal:attributes="
+       href view/usage_url;
+     "
+     i18n:translate=""
+  >Review disk usage</a>
+</div>

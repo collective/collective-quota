@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<object>
+  <!-- Plone stores no order for this manager, and ordered viewlets come
+       before unordered ones: pin the status messages first, then ours. -->
+  <order manager="plone.globalstatusmessage"
+         skinname="*"
+  >
+    <viewlet insert-before="*"
+             name="plone.globalstatusmessage"
+    />
+    <viewlet insert-after="plone.globalstatusmessage"
+             name="collective.quota.warning"
+    />
+  </order>
+</object>

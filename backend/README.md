@@ -103,6 +103,15 @@ confirmation page lists them with their total size and Plone's usual link-integr
 warnings. Items you may not delete, or that another user has locked, are skipped and
 reported. Deleting always works, even over the hard limit.
 
+### Warning banner
+
+Users with `collective.quota: View Disk Usage` see a banner below the status
+messages on every page once usage reaches the soft limit (yellow) or the hard limit
+(red, with what the policy now blocks), with a "Review disk usage" button. Anonymous
+visitors never see it. The banner reads only the running total, so it costs no
+catalog query. Themes with a custom `main_template` that does not render
+`plone.globalstatusmessage` can move it to another manager in their `viewlets.xml`.
+
 ## Installation
 
 Install collective.quota with uv.

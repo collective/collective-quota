@@ -37,3 +37,13 @@ class TestSetupUninstall:
 
     def test_user_action_removed(self, portal):
         assert "disk-usage" not in portal.portal_actions.user.objectIds()
+
+    def test_viewlet_order_removed(self, portal):
+        from plone.app.viewletmanager.interfaces import IViewletSettingsStorage
+        from zope.component import getUtility
+
+        storage = getUtility(IViewletSettingsStorage)
+        order = storage.getOrder(
+            "plone.globalstatusmessage", portal.getCurrentSkinName()
+        )
+        assert "collective.quota.warning" not in order
