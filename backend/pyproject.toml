@@ -44,6 +44,10 @@ test = [
     "pytest-cov",
     "pytest-plone>=1.1.0",
 ]
+# Only to run the Volto acceptance server; never a runtime dependency.
+acceptance = [
+    "plone.volto",
+]
 
 [project.urls]
 Homepage = "https://github.com/collective/collective-quota"

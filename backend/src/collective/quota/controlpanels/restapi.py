@@ -47,7 +47,6 @@ class QuotaConfigletPanel(RegistryConfigletPanel):
     configlet_id = "collective-quota"
     configlet_category_id = "Products"
     title = _("Quota")
-    group = "Products"
 
 
 @implementer(IQuotaSettings)

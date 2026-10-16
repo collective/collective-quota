@@ -1,6 +1,6 @@
 # Phase 8 — REST API for Volto
 
-Status: Not started
+Status: Done
 Depends on: Phases 1–7
 Last updated: 2026-10-16
 
@@ -154,8 +154,9 @@ The summary part (everything except `items`, `limit`, `limits`) is built by one 
 from `browser/` to the package root (`collective.quota.summary`) because it is no
 longer Classic-only; `browser/summary.py` keeps a re-export so phase 5/6 imports work.
 
-Errors: `401` for anonymous, `403` without the permission (plone.restapi's standard
-handling of the ZCML permission); no other error cases.
+Errors: `401` for anonymous **and** for authenticated users without the permission
+(plone.restapi answers `401 Unauthorized` for both, as its own services and our
+`@controlpanels/collective-quota` do); no other error cases.
 
 ### Expansion element `quota` — `restapi/expansion.py`
 
@@ -190,7 +191,7 @@ class Quota:
   content objects.
 - Permission check uses `getSecurityManager().checkPermission(VIEW_DISK_USAGE, portal)`
   on the **site root**, because the services live there; a user who only holds the
-  permission through a local role on a folder gets no banner there (and would get `403`
+  permission through a local role on a folder gets no banner there (and would get `401`
   on the service). Documented limitation; same as Classic.
 
 ### `POST @quota-rebuild` — `restapi/rebuild.py`
@@ -235,11 +236,12 @@ reports the failed items and continues. We do not replicate the Classic view's
 
 ### Control panel group
 
-`controlpanels/restapi.py` hard-codes `group = "Products"`. plone.restapi derives the
-group title from the configlet category when `group` is empty, and Plone 6 titles the
-`Products` category **"Add-on Configuration"**, which is the section Volto's Site Setup
-shows for add-ons. Remove the explicit `group` so the panel is listed with the other
-add-ons in Volto (Classic is unaffected: it reads `controlpanel.xml`).
+`controlpanels/restapi.py` hard-coded `group = "Products"`. `RegistryConfigletPanel.__init__`
+already replaces `group` with the configlet category title whenever the configlet
+exists, and Plone 6 titles the `Products` category **"Add-on Configuration"**, which is
+the section Volto's Site Setup shows for add-ons; the class attribute was only a dead
+fallback. It is removed so the title has a single source, and a test asserts the group
+in the `@controlpanels` listing (Classic is unaffected: it reads `controlpanel.xml`).
 
 ### Acceptance extra and `plone.volto`
 
@@ -260,8 +262,13 @@ the local virtualenv because `plone.volto` is not installed.
   `plone/server-builder` image already ships `plone.volto` (the `Plone` meta package
   may pull it); the extra is harmless either way.
 - Nothing in the `default` profile changes: `plone.volto:default` is **not** a
-  dependency. The Volto acceptance server applies it through `APPLY_PROFILES` the way
-  the Volto project templates do.
+  dependency. The Volto acceptance server applies it through `APPLY_PROFILES`
+  (`plone.volto:default,collective.quota:default`) the way the Volto project templates
+  do.
+- The robot fixture only runs a package's Zope product `initialize()` for names in
+  `INSTALL_PRODUCTS`; without it `BlobSizeIndex` is not registered and applying
+  `catalog.xml` fails with "Index of type BlobSizeIndex not found". Both the Makefile
+  target and `Dockerfile.acceptance` set `INSTALL_PRODUCTS=collective.quota`.
 
 ### Documentation and changelog
 
@@ -292,34 +299,35 @@ Modify:
 - `backend/src/collective/quota/browser/summary.py` (re-export shim)
 - `backend/src/collective/quota/restapi/configure.zcml`
 - `backend/src/collective/quota/controlpanels/restapi.py` (drop `group`)
-- `backend/pyproject.toml`, `backend/mx.ini`, `backend/Dockerfile.acceptance`
+- `backend/pyproject.toml`, `backend/mx.ini`, `backend/Dockerfile.acceptance`,
+  `backend/Makefile` (`INSTALL_PRODUCTS`, `plone.volto:default`)
 - `backend/tests/test_scaffold.py`, `backend/tests/test_controlpanel_restapi.py` (group)
-- `backend/README.md`, `docs/docs/reference/index.md`
+- `backend/README.md`, `docs/docs/reference/index.md`, `docs/docs/reference/views-and-viewlet.md`
 - `specs/00-architecture.md` (only if implementation changes a name)
 
 ## Tasks
 
-- [ ] `listing.py` with `LIMITS`, `DEFAULT_LIMIT`, `parse_limit`, `Item`, `biggest_items`; `browser/usage.py` uses it; phase 5 tests still green
-- [ ] `summary.py` at package root, `browser/summary.py` re-exports; `usage_payload()`
-- [ ] `GET @quota-usage` service + ZCML
-- [ ] `quota` expander + ZCML
-- [ ] `POST @quota-rebuild` service + ZCML
-- [ ] Control panel `group` removed; REST listing shows "Add-on Configuration"
-- [ ] `acceptance` extra, `mx.ini`, `Dockerfile.acceptance` sed; `make acceptance-backend-start` starts locally and answers `GET /plone/@quota-usage` with the admin user
-- [ ] README "REST API" section, docs reference page, news fragment
-- [ ] `make lint`, `make test-coverage` at 100 %
+- [x] `listing.py` with `LIMITS`, `DEFAULT_LIMIT`, `parse_limit`, `Item`, `biggest_items`; `browser/usage.py` uses it; phase 5 tests still green
+- [x] `summary.py` at package root, `browser/summary.py` re-exports; `usage_payload()`
+- [x] `GET @quota-usage` service + ZCML
+- [x] `quota` expander + ZCML
+- [x] `POST @quota-rebuild` service + ZCML
+- [x] Control panel `group` removed; REST listing shows "Add-on Configuration"
+- [x] `acceptance` extra, `mx.ini`, `Dockerfile.acceptance` sed; `make acceptance-backend-start` starts locally and answers `GET /plone/@quota-usage` with the admin user
+- [x] README "REST API" section, docs reference page, news fragment
+- [x] `make lint`, `make test-coverage` at 100 %
 
 ## Tests
 
 Functional layer with `RelativeSession` (as in `test_enforcement_restapi.py`), users
 `admin` (Manager), `editor` (Editor), `member` (Member, no `ViewDiskUsage`), anonymous.
 
-- [ ] `tests/test_listing.py` — `parse_limit` (valid, invalid, missing); `biggest_items` ordering, limit, restricted search hides private items from the editor, `can_delete` false without `Delete objects`, metadata fallback when the `blob_size` column is `Missing.Value`
-- [ ] `tests/test_restapi_usage.py` — 200 shape for editor (all keys, `can_manage` false, no `controlpanel`); admin gets `can_manage` true + `controlpanel`; `limit` query handling; anonymous → 401; member → 403; `limits_configured` false and `message`/`percent`/`policy_hint`/`soft_human`/`hard_human` null with no limits; `level`/`message` for warning and exceeded; `modified` is ISO 8601; item `@id`/`UID`/`@type` naming
-- [ ] `tests/test_restapi_expansion.py` — `GET /plone/folder` as editor: `@components.quota` has only `@id`; with `?expand=quota` it has the summary keys; anonymous and member responses have **no** `quota` key with and without `expand`; site root works; after uninstall the key is absent (layer gone)
-- [ ] `tests/test_restapi_rebuild.py` — admin POST → 200 with counts, total matches `get_total_usage()`; editor → 403; anonymous → 401; GET → 405/404 (whatever plone.restapi returns for an unregistered method; assert it is not 200)
-- [ ] `tests/test_controlpanel_restapi.py` — `@controlpanels` lists `collective-quota` with group "Add-on Configuration"
-- [ ] `tests/test_scaffold.py` — `plone.volto` absent from `[project].dependencies`, present in the `acceptance` extra
+- [x] `tests/test_listing.py` — `parse_limit` (valid, invalid, missing); `biggest_items` ordering, limit, restricted search hides private items from the editor, `can_delete` false without `Delete objects`, metadata fallback when the `blob_size` column is `Missing.Value`
+- [x] `tests/test_restapi_usage.py` — 200 shape for editor (all keys, `can_manage` false, no `controlpanel`); admin gets `can_manage` true + `controlpanel`; `limit` query handling; anonymous → 401; member → 401; `limits_configured` false and `message`/`percent`/`policy_hint`/`soft_human`/`hard_human` null with no limits; `level`/`message` for warning and exceeded; `modified` is ISO 8601; item `@id`/`UID`/`@type` naming
+- [x] `tests/test_restapi_expansion.py` — `GET /plone/folder` as editor: `@components.quota` has only `@id`; with `?expand=quota` it has the summary keys; anonymous and member responses have **no** `quota` key with and without `expand`; site root works; after uninstall the key is absent (layer gone)
+- [x] `tests/test_restapi_rebuild.py` — admin POST → 200 with counts, total matches `get_total_usage()`; editor → 401; anonymous → 401; GET → 405/404 (whatever plone.restapi returns for an unregistered method; assert it is not 200)
+- [x] `tests/test_controlpanel_restapi.py` — `@controlpanels` lists `collective-quota` with group "Add-on Configuration"
+- [x] `tests/test_scaffold.py` — `plone.volto` absent from `[project].dependencies`, present in the `acceptance` extra
 
 ## Acceptance criteria
 

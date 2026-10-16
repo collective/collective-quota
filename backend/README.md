@@ -189,6 +189,31 @@ or RelStorage it can run next to the running instances.
 .venv/bin/zconsole run instance/etc/zope.conf scripts/rebuild_blob_size.py Plone
 ```
 
+## REST API 🔌
+
+For Volto and other REST clients, on top of `@controlpanels/collective-quota`:
+
+| Endpoint | Permission | Returns |
+|---|---|---|
+| `GET @quota-usage?limit=25` | View Disk Usage | Usage summary and the biggest items (`limit`: 10, 25, 50 or 100) |
+| `POST @quota-rebuild` | Manage Quota Settings | Rebuilds the usage data; `{"items", "total", "total_human"}` |
+| `?expand=quota` on any content | View Disk Usage | The usage summary in `@components.quota` |
+
+```shell
+curl -u admin:secret -H "Accept: application/json" \
+  "http://localhost:8080/Plone/@quota-usage?limit=10"
+curl -u admin:secret -H "Accept: application/json" \
+  "http://localhost:8080/Plone/news?expand=quota"
+curl -X POST -u admin:secret -H "Accept: application/json" \
+  http://localhost:8080/Plone/@quota-rebuild
+```
+
+Anonymous users and users without the permission never get quota data: the services
+answer `401` and the `quota` key is left out of `@components`. With no limits
+configured, `limits_configured` is `false` and `message` is `null`. See the
+[REST API reference](https://github.com/collective/collective-quota/blob/main/docs/docs/reference/rest-api.md)
+for every field.
+
 ## For developers 🧑‍💻
 
 ### Python API

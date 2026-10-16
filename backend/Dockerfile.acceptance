@@ -13,7 +13,7 @@ COPY . src
 RUN <<EOT
     set -e
     bin/pip install mxdev uv
-    sed -i 's/-e .\[test\]/./g' src/mx.ini
+    sed -i 's/-e .\[test,acceptance\]/.[acceptance]/g' src/mx.ini
     cd /app/src
     # remove potentially existing virtualenv from local build
     rm -rf .venv
@@ -30,7 +30,8 @@ LABEL maintainer="Enfold Systems, Inc. <info@enfoldsystems.com>" \
       org.label-schema.vendor="Enfold Systems, Inc."
 
 ENV CONFIGURE_PACKAGES="plone.restapi,plone.volto,plone.volto.cors,collective.quota"
-ENV APPLY_PROFILES="collective.quota:default"
+ENV APPLY_PROFILES="plone.volto:default,collective.quota:default"
+ENV INSTALL_PRODUCTS="collective.quota"
 
 # Copy /app from builder
 COPY --from=builder /app /app

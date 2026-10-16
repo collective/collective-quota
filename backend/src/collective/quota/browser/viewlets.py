@@ -1,8 +1,8 @@
 """Warning banner for editors when the site is near or over its quota."""
 
-from collective.quota.browser.summary import ALERT_CLASSES
-from collective.quota.browser.summary import level_message
 from collective.quota.settings import get_settings
+from collective.quota.summary import ALERT_CLASSES
+from collective.quota.summary import level_message
 from collective.quota.usage import get_usage_info
 from plone.app.layout.viewlets.common import ViewletBase
 

@@ -10,7 +10,8 @@ myst:
 # Views and viewlet
 
 All views are registered on the site root for the `collective.quota` browser layer,
-so they exist only while the add-on is installed.
+so they exist only while the add-on is installed. Their REST counterparts are
+described in {doc}`rest-api`.
 
 | Name | Permission | Description |
 |---|---|---|

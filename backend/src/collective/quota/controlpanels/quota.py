@@ -1,7 +1,6 @@
 """Classic control panel: ``@@quota-controlpanel``."""
 
 from collective.quota import _
-from collective.quota.browser.summary import usage_summary
 from collective.quota.interfaces import IQuotaSettings
 from collective.quota.settings import ENV_VARS
 from collective.quota.settings import FIELDS
@@ -17,6 +16,7 @@ from collective.quota.settings import SOURCE_DEFAULT
 from collective.quota.settings import SOURCE_ENV
 from collective.quota.settings import SOURCE_ENV_LOCKED
 from collective.quota.settings import SOURCE_REGISTRY
+from collective.quota.summary import usage_summary
 from collective.quota.usage import get_usage_info
 from collective.quota.vocabularies.policies import POLICY_TITLES
 from html import escape

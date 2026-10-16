@@ -22,6 +22,7 @@ settings
 environment-variables
 permissions
 views-and-viewlet
+rest-api
 python-api
 catalog-index
 commit-guard

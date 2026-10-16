@@ -5,9 +5,9 @@ integrity warnings, then the deletion (POST with a CSRF token).
 """
 
 from collective.quota import _
-from collective.quota.browser.usage import DELETE_OBJECTS
-from collective.quota.browser.usage import item_size
-from collective.quota.browser.usage import type_title
+from collective.quota.listing import DELETE_OBJECTS
+from collective.quota.listing import item_size
+from collective.quota.listing import type_title
 from collective.quota.usage import get_index
 from collective.quota.usage import get_total_usage
 from collective.quota.utils import human_readable_size

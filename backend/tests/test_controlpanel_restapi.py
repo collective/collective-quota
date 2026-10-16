@@ -23,8 +23,8 @@ class TestGet:
     def test_listed(self, api_session):
         response = api_session().get("/@controlpanels")
         assert response.status_code == 200
-        ids = [panel["@id"].rsplit("/", 1)[-1] for panel in response.json()]
-        assert "collective-quota" in ids
+        panels = {panel["@id"].rsplit("/", 1)[-1]: panel for panel in response.json()}
+        assert panels["collective-quota"]["group"] == "Add-on Configuration"
 
     def test_get_exposes_effective_values_sources_and_locked(
         self, api_session, functional_portal, quota_env, set_quota

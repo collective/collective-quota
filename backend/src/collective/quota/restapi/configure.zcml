@@ -10,6 +10,31 @@
   <!-- Integer values for @search queries on blob_size. -->
   <adapter factory=".query.BlobSizeIndexQueryParser" />
 
+  <!-- Usage summary and biggest items (phase 8). -->
+  <plone:service
+      method="GET"
+      factory=".usage.QuotaUsageGet"
+      for="plone.base.interfaces.IPloneSiteRoot"
+      permission="collective.quota.ViewDiskUsage"
+      layer="collective.quota.interfaces.IQuotaRestapiLayer"
+      name="@quota-usage"
+      />
+
+  <plone:service
+      method="POST"
+      factory=".rebuild.QuotaRebuildPost"
+      for="plone.base.interfaces.IPloneSiteRoot"
+      permission="collective.quota.ManageSettings"
+      layer="collective.quota.interfaces.IQuotaRestapiLayer"
+      name="@quota-rebuild"
+      />
+
+  <!-- ?expand=quota on any content response. -->
+  <adapter
+      factory=".expansion.Quota"
+      name="quota"
+      />
+
   <!-- -*- extra stuff goes here -*- -->
 
 </configure>
