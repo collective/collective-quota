@@ -22,9 +22,3 @@ def test_hidden_profiles():
     hidden = HiddenProfiles()
     assert hidden.getNonInstallableProfiles() == ["collective.quota:uninstall"]
     assert hidden.getNonInstallableProducts() == ["collective.quota.upgrades"]
-
-
-def test_initial_profile_imports_example_content(functional_portal, apply_profiles):
-    # plone.exportimport commits; the functional layer isolates commits per test.
-    apply_profiles(functional_portal, ["collective.quota:initial"])
-    assert functional_portal["images"].portal_type == "Document"

@@ -1,0 +1,1 @@
+Enforce the hard limit with four policies (`block_all`, `block_files`, `limit_file_size`, `allow`) in Classic forms and plone.restapi, plus a commit guard that cancels any other transaction crossing the limit; trusted scripts can use `guard_suspended()`.

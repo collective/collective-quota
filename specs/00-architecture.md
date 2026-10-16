@@ -353,7 +353,11 @@ current thread, across commits made inside the block, and changes made outside i
 still checked. It is a Python-only API meant for `rebuild_usage()` (a fresh install
 would otherwise look like a huge unapproved delta), migrations, and imports run by an
 administrator. It is not reachable from any view or REST endpoint, and every use is
-logged at INFO with the caller.
+logged at INFO with the caller. Inside the block the upload validator (hook A) and the
+REST add guard (hook C) also step aside: `plone.exportimport` creates content through
+the plone.restapi deserializer, so an import into a full site would otherwise be
+refused before the guard is even reached. Hook B only runs in Classic add forms,
+which never run inside a Python `with` block.
 
 **Interplay with "Clear and rebuild" / reindex:** those run through `rebuild_usage` or
 the ZMI; the ZMI buttons are Manager-only and their changes are net 0 for an already
@@ -450,8 +454,9 @@ backend/src/collective/quota/
   restapi/__init__.py
   restapi/configure.zcml
   restapi/deserializer.py     QuotaAwareDeserializer(s) (hook C)
+  restapi/query.py            BlobSizeIndexQueryParser (integer @search queries on blob_size)
   setuphandlers/__init__.py   HiddenProfiles, post_install (populate index)
-  upgrades/                   step modules + configure.zcml
+  upgrades/                   utils.py (run_import_step, rebuild_usage) + configure.zcml
   profiles/default/           metadata.xml, browserlayer.xml, catalog.xml, rolemap.xml,
                               registry/main.xml, controlpanel.xml, actions.xml, viewlets.xml
   profiles/uninstall/         mirrors of the above with remove="True"

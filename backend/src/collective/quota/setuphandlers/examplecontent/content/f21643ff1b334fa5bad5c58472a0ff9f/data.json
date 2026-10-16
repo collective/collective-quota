@@ -1,0 +1,50 @@
+{
+  "@id": "/media",
+  "@type": "Folder",
+  "UID": "f21643ff1b334fa5bad5c58472a0ff9f",
+  "allow_discussion": null,
+  "contributors": [],
+  "created": "2026-10-16T11:55:47+00:00",
+  "creators": [
+    "admin"
+  ],
+  "description": "Sample files to try the disk usage view.",
+  "effective": null,
+  "exclude_from_nav": false,
+  "expires": null,
+  "exportimport.constrains": {},
+  "exportimport.conversation": [],
+  "id": "media",
+  "is_folderish": true,
+  "language": "##DEFAULT##",
+  "layout": "listing_view",
+  "lock": {},
+  "modified": "2026-10-16T11:55:47+00:00",
+  "nextPreviousEnabled": false,
+  "review_state": "published",
+  "rights": "",
+  "subjects": [],
+  "title": "Media library",
+  "type_title": "Folder",
+  "version": "current",
+  "workflow_history": {
+    "simple_publication_workflow": [
+      {
+        "action": null,
+        "actor": "admin",
+        "comments": "",
+        "review_state": "private",
+        "time": "2026-10-16T11:55:47+00:00"
+      },
+      {
+        "action": "publish",
+        "actor": "admin",
+        "comments": "",
+        "review_state": "published",
+        "time": "2026-10-16T11:55:47+00:00"
+      }
+    ]
+  },
+  "working_copy": null,
+  "working_copy_of": null
+}

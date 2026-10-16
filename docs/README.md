@@ -1,7 +1,7 @@
 # Collective Quota
 
 Documentation for Collective Quota.
-This product allows to configure a quota limit for Plone sites. It also provides a convenient view for quickly finding the biggest items in case you need to delete
+Disk quota for Plone sites: measures the space used by uploaded files and images, warns editors near the limit, enforces a hard limit, and helps find and delete the biggest items.
 
 This project provides a Sphinx-based documentation environment for your Plone project, powered by the [Plone Sphinx Theme](https://github.com/plone/plone-sphinx-theme).
 It's generated using the `documentation_starter` template from [Cookieplone](https://github.com/plone/cookieplone).

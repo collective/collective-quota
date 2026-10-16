@@ -1,0 +1,1 @@
+Add the `blob_size` catalog index and metadata column: the size in bytes of every item's files and images, with a running site total that is read in constant time. Installing populates it for existing content.

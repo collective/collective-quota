@@ -1,8 +1,8 @@
 # Phase 7 — Uninstall, upgrade scaffolding, i18n, docs, changelog, manual QA
 
-Status: Not started
+Status: Done (publishing the release is left to the maintainers)
 Depends on: Phases 1–6
-Last updated: 2026-10-15
+Last updated: 2026-10-16
 
 ## Goal
 
@@ -44,8 +44,9 @@ and repopulates everything.
   `upgrades/configure.zcml` with `source`/`destination`, and add a test in
   `tests/setup/test_upgrades.py` that runs it.
 - Provide `upgrades/utils.py` now with the two helpers most steps need:
-  `run_import_step(setup_tool, "collective.quota:default", "catalog")` and
-  `rebuild_usage(portal)` (from phase 2).
+  `run_import_step(setup_tool, "catalog", profile="collective.quota:default")` and
+  `rebuild_usage(setup_tool)` (wraps phase 2's `rebuild_usage(portal)` so it can be
+  an upgrade handler directly).
 - Keep the commented example step in `upgrades/configure.zcml` as the template.
 
 ### i18n
@@ -53,7 +54,8 @@ and repopulates everything.
 - Domain `collective.quota`; `make i18n` regenerates `locales/collective.quota.pot`
   and syncs the existing `.po` files (`de`, `en`, `es`, `it`, `pt_BR`).
 - Provide full translations for `en` and `es` (both maintainers' languages); leave
-  others with msgids.
+  others with msgids. `en` carries `msgstr` = `msgid`.
+- The ZMI "add BlobSizeIndex" form stays untranslated, like the rest of the ZMI.
 - `actions.xml`, `controlpanel.xml` and templates must carry `i18n:domain="collective.quota"`.
 - Policy vocabulary titles and the viewlet/validator messages are the strings to
   double-check in the `.pot`.
@@ -63,7 +65,9 @@ and repopulates everything.
 Replace the Volto-flavoured export with a small Classic sample: one Folder, two Files
 (≈ 2 MB and ≈ 500 KB generated binaries), one Image, one Document linking to the first
 File (so the link-integrity warning can be demoed). Regenerate with
-`make update-example-content` after creating the content on a dev site.
+`make update-example-content PLONE_SITE_ID=<demo site>` after creating the content
+on a dev site. The zero-filled sample files cost about nothing in git and the wheel
+(both compress them). The importer runs under `guard_suspended()`.
 
 ### Documentation
 
@@ -91,11 +95,12 @@ One fragment per phase in `backend/news/` (e.g. `+index.feature`, `+controlpanel
 
 ### Release checklist
 
-- [ ] `version.txt` / `__version__` = `1.0.0a1`
-- [ ] `pyproject.toml` classifiers: Plone 6.1 and 6.2, Python 3.11–3.13 (verify 6.1 actually works or drop it)
-- [ ] `make lint`, `make test-coverage` at 100 % (gate enforced; only `locales/__main__.py` omitted)
-- [ ] Docker image builds (`make build-image`)
-- [ ] Tag, `towncrier build`, build sdist/wheel, upload
+- [x] `version.txt` / `__version__` = `1.0.0a1`
+- [x] `pyproject.toml` classifiers: Plone 6.1 and 6.2, Python 3.11–3.13 (6.1 verified: the full suite passes on Plone 6.1.5)
+- [x] `make lint`, `make test-coverage` at 100 % (gate enforced; only `locales/__main__.py` omitted)
+- [x] Docker image builds (`make build-image`) and starts (`/ok`, collective.quota 1.0.0a1 on Plone 6.2.2)
+- [x] Build sdist/wheel (`uv build`: 1.0.0a1, 108 KB wheel with templates, profiles, example content and locales, no tests)
+- [ ] Tag, `towncrier build`, upload — maintainers, at release time
 
 ### Manual QA script (Classic UI)
 
@@ -149,24 +154,24 @@ Modify:
 
 ## Tasks
 
-- [ ] Verify every uninstall file exists and is registered by the `uninstall` profile
-- [ ] `upgrades/utils.py` + documented convention
-- [ ] `make i18n`; translate `en` and `es`; ensure no untranslated UI strings remain in templates/XML
-- [ ] Regenerate example content for Classic
-- [ ] Write `backend/README.md` sections and `docs/docs` pages; `make docs-build` (or the docs Makefile target) passes
-- [ ] Towncrier fragments for all phases
-- [ ] Coverage report at 100 % with the gate on in CI
-- [ ] Run the manual QA script in scenario (A) and (B); record results in this file under "QA log"
-- [ ] Release checklist
+- [x] Verify every uninstall file exists and is registered by the `uninstall` profile
+- [x] `upgrades/utils.py` + documented convention
+- [x] `make i18n`; translate `en` and `es`; ensure no untranslated UI strings remain in templates/XML
+- [x] Regenerate example content for Classic
+- [x] Write `backend/README.md` sections and `docs/docs` pages; `make docs-build` (or the docs Makefile target) passes
+- [x] Towncrier fragments for all phases
+- [x] Coverage report at 100 % with the gate on in CI
+- [x] Run the manual QA script in scenario (A) and (B); record results in this file under "QA log"
+- [x] Release checklist
 
 ## Tests
 
-- [ ] `tests/setup/test_setup_uninstall.py` — after uninstall: no index, no column, no registry records, no configlet, no `disk-usage` action, no viewlet order entry, no layers; `get_total_usage()` returns 0 without raising; `@@quota-usage` is not traversable
-- [ ] `tests/setup/test_setup_install.py::test_reinstall_repopulates`
-- [ ] `tests/setup/test_upgrades.py` — upgrade registry lists no pending steps for a fresh install; the `utils` helpers run
-- [ ] `tests/test_i18n.py` — every `.po` file compiles (`msgfmt --check` equivalent via `python-gettext`), `.pot` contains the key msgids (`Disk usage`, `Quota settings`, policy titles)
-- [ ] `tests/test_example_content.py` — `initial` profile imports on a Classic site and the Files end up in the index (import runs under `guard_suspended()`)
-- [ ] `tests/test_docs_env_table.py` — the environment variables documented in `backend/README.md` match `settings.ENV_VARS` + `LOCK_VAR` (keeps docs honest)
+- [x] `tests/setup/test_setup_uninstall.py` — after uninstall: no index, no column, no registry records, no configlet, no `disk-usage` action, no viewlet order entry, no layers; `get_total_usage()` returns 0 without raising; `@@quota-usage` is not traversable
+- [x] `tests/setup/test_setup_install.py::test_reinstall_repopulates`
+- [x] `tests/setup/test_upgrades.py` — upgrade registry lists no pending steps for a fresh install; the `utils` helpers run
+- [x] `tests/test_i18n.py` — every `.po` file compiles (`msgfmt --check` equivalent via `python-gettext`), `.pot` contains the key msgids (`Disk usage`, `Quota settings`, policy titles)
+- [x] `tests/test_example_content.py` — `initial` profile imports on a Classic site and the Files end up in the index (import runs under `guard_suspended()`)
+- [x] `tests/test_docs_env_table.py` — the environment variables documented in `backend/README.md` match `settings.ENV_VARS` + `LOCK_VAR` (keeps docs honest)
 
 ## Acceptance criteria
 
@@ -175,8 +180,80 @@ Modify:
 - Documentation lets a site administrator configure the quota without reading code,
   and a developer extend it without reading this spec.
 
+## Implementation notes (2026-10-16)
+
+- **`guard_suspended()` also skips hooks A and C.** `plone.exportimport` creates
+  content through the plone.restapi deserializer, so on a site over its limit the
+  example-content import (and any administrator import) was refused by the upload
+  validator before the commit guard was reached. Suspension is thread-local and only
+  reachable from Python, so the validators now step aside inside the block too.
+  Architecture §5.1 is updated.
+- **REST `@search` on `blob_size` failed** (`'<' not supported between 'int' and
+  'str'`): plone.restapi parses query strings per index class and leaves values of
+  `FieldIndex` subclasses as strings. `restapi/query.py` registers an integer
+  `IIndexQueryParser` for `BlobSizeIndex`. Found during QA.
+- **Plone 6.1** pins `pytest-plone==1.0.0a2`, which lacks `functional_app`; `mx.ini`
+  overrides it to `1.1.0` and the test extra requires `pytest-plone>=1.1.0`, so the CI
+  matrix (6.1 and 6.2) installs a working test runner.
+- The package description (cookieplone placeholder) is replaced everywhere in the
+  backend, the root README and the docs; the frontend keeps it until phase 8.
+- `plone.exportimport` commits while importing, so `test_example_content.py` runs on
+  the functional layer. The scaffold's Volto example-content test is replaced by it.
+- `backend/scripts/rebuild_blob_size.py` is not in the wheel; the docs link to it in
+  the repository and say that a FileStorage site must be stopped first.
+- Docs: Diátaxis pages written; `make html` builds without warnings and `make vale`
+  reports 0 errors (style warnings such as "click" are kept, like Plone's own docs).
+  Project words are in `docs/styles/config/vocabularies/Base/accept.txt`.
+
 ## QA log
+
+The manual script was automated over HTTP (`requests`, port 8091) plus `zconsole`
+for step 12's script checks, on temporary sites deleted afterwards. Users: `admin`
+(Manager) and `editor` (Editor + Contributor).
 
 | Date | Scenario | Plone | Result | Notes |
 |---|---|---|---|---|
-| | | | | |
+| 2026-10-16 | A: fresh site, install, then content | 6.2.2 | 14/14 steps pass | Steps 4–5 with 7 MB uploads against soft 20 / hard 30 MB |
+| 2026-10-16 | B: 40 Files + 10 Images created before install | 6.2.2 | 14/14 steps pass | Right after install `@@quota-usage` listed `file39`, `file38`, `file37`… (25 rows) |
+
+Per step, both scenarios:
+
+1. Installed from **Add-ons**; (B) listing and total correct immediately.
+2. Control panel saved soft 20 / hard 30 / `block_all`; usage card showed 30.0 MB;
+   "Rebuild usage data" reported the item count.
+3. Editor's user menu had "Disk usage"; limits 10/50/100 preselected.
+4. Over 20 MB: yellow banner on the site root and a folder for the editor, none for
+   anonymous.
+5. The upload that still fitted (30 MB − 64 KB) was saved; the next 1 MB and a 2 MB
+   upload got "This file cannot be saved…" on the field; adding a Document got "New
+   content cannot be added…".
+6. `block_files`: Document added, 500 KB upload refused.
+7. `limit_file_size` 1 MB: 500 KB saved, 2 MB refused ("only files up to 1.0 MB").
+8. `allow`: uploads over the limit saved, red banner.
+9. Edit form, `block_all`, over the limit: 7 MB file replaced with 100 KB, "Changes
+   saved".
+10. Selected a File linked from a Document plus another file: confirmation listed 2
+    items with the link-integrity warning naming the Document; confirm → "Deleted 2
+    items, freeing 9.0 MB."; total went down.
+11. REST: POST of a file larger than the room left → 400 with the quota message;
+    PATCH with a 10 KB file → 204.
+12. `object_copy`/`object_paste` over the limit → 400 "Disk quota exceeded", nothing
+    pasted. zconsole: `plone.api.content.create` of 2 MB over an 18 MB hard limit →
+    `transaction.commit()` raised `QuotaCommitAborted` and left nothing; the same
+    create inside `guard_suspended()` committed and the red banner showed the new
+    19.4 MB total.
+13. Restart with `COLLECTIVE_QUOTA_HARD_LIMIT_MB=50`,
+    `COLLECTIVE_QUOTA_OVER_LIMIT_POLICY=block_files`: control panel showed both as
+    "env" and saving 60 overrode the hard limit ("registry"). Restart with hard 1,
+    `block_files` and `COLLECTIVE_QUOTA_LOCK_SETTINGS=1`, registry set to 100 MB /
+    `allow`: lock alert, fields read-only, REST PATCH → 400, `effective` = 1 /
+    `block_files`, a 1 MB upload refused, a Document allowed.
+14. Uninstall: pages render, no banner, no user action, `@@quota-usage` and
+    `@@quota-controlpanel` → 404, configlet gone, 3 MB upload saved without limits.
+    Reinstall: the file uploaded while uninstalled is listed and counted. Uninstalled
+    again at the end. (The first pass of this check used a regex that could not match
+    `afteruninstall.bin`; it was rerun with the fixed regex.)
+
+Bugs found by the QA run, in the QA script itself, were fixed and the affected steps
+rerun on freshly created sites; the add-on bugs it found (REST `@search` on
+`blob_size`) are listed in the implementation notes.

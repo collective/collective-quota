@@ -43,7 +43,7 @@ Code lives in `backend/` (Python, Plone 6.2) and, in a later iteration, `fronten
 | 4 | [phase-04-policy-enforcement.md](phase-04-policy-enforcement.md) | Quota policy, enforcement in Classic forms and REST, transaction commit guard | Done | 2, 3 |
 | 5 | [phase-05-disk-usage-view.md](phase-05-disk-usage-view.md) | `@@quota-usage` biggest-items view, multi-delete with link integrity, user-menu entry | Done | 2, 3 |
 | 6 | [phase-06-warning-viewlet.md](phase-06-warning-viewlet.md) | Soft/hard limit warning viewlet for editors | Done | 2, 3, 5 |
-| 7 | [phase-07-release-readiness.md](phase-07-release-readiness.md) | Uninstall, upgrade scaffolding, i18n, docs, changelog, manual QA | Not started | 1–6 |
+| 7 | [phase-07-release-readiness.md](phase-07-release-readiness.md) | Uninstall, upgrade scaffolding, i18n, docs, changelog, manual QA | Done | 1–6 |
 | 8 | [phase-08-volto-future.md](phase-08-volto-future.md) | REST endpoints and Volto UI | Deferred | 1–7 |
 
 Phases 5 and 6 can be developed in parallel once 2 and 3 are done.

@@ -1,6 +1,7 @@
 """QuotaUploadValidator edge cases (hook A), called directly."""
 
 from collective.quota.guard import get_ledger
+from collective.quota.guard import guard_suspended
 from collective.quota.policy import QuotaExceeded
 from collective.quota.validators import QuotaUploadValidator
 from plone.namedfile.field import NamedBlobFile
@@ -23,6 +24,13 @@ def file_field(portal):
 
 
 class TestValidator:
+    def test_skipped_while_guard_suspended(self, over_limit, make_blob):
+        field = file_field(over_limit)
+        with guard_suspended():
+            QuotaUploadValidator(field, make_blob(2 * MB))()
+        with pytest.raises(QuotaExceeded):
+            QuotaUploadValidator(field, make_blob(2 * MB))()
+
     def test_none_and_non_file_values_skipped(self, over_limit):
         field = file_field(over_limit)
         assert QuotaUploadValidator(field, None)() is None
@@ -64,3 +72,33 @@ class TestValidator:
         set_quota(hard_mb=10)
         QuotaUploadValidator(file_field(over_limit), make_blob(MB))()
         assert get_ledger().approved_bytes == MB
+
+
+class TestRestDeserializerSuspended:
+    """Hook C: plone.exportimport creates items through the REST deserializer."""
+
+    @pytest.fixture
+    def deserializer(self, portal, http_request, make_file, set_quota):
+        from collective.quota.interfaces import IQuotaRestapiLayer
+        from plone import api
+        from plone.restapi.interfaces import IDeserializeFromJson
+        from zope.component import getMultiAdapter
+        from zope.interface import alsoProvides
+
+        make_file(portal, "a", 2 * MB)
+        set_quota(hard_mb=1, policy="block_all")
+        alsoProvides(http_request, IQuotaRestapiLayer)
+        with api.env.adopt_roles(["Manager"]):
+            doc = api.content.create(portal, "Document", id="doc", title="Doc")
+        return getMultiAdapter((doc, http_request), IDeserializeFromJson)
+
+    def test_create_refused(self, deserializer):
+        from zExceptions import BadRequest
+
+        with pytest.raises(BadRequest):
+            deserializer(data={"title": "New"}, create=True)
+
+    def test_create_allowed_while_suspended(self, deserializer):
+        with guard_suspended():
+            deserializer(data={"title": "New"}, create=True)
+        assert deserializer.context.title == "New"

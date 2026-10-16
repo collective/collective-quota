@@ -189,3 +189,24 @@ class TestTus:
         )
         assert response.status_code == 204
         assert total(portal) == 100 * KB
+
+
+class TestSearch:
+    def test_search_by_blob_size(self, functional_portal, make_file, api_session):
+        make_file(functional_portal, "small", 10 * KB)
+        make_file(functional_portal, "big", 2 * MB)
+        transaction.commit()
+        response = api_session("Editor").get(
+            "/@search",
+            params={
+                "blob_size.query": str(MB),
+                "blob_size.range": "min",
+                "sort_on": "blob_size",
+                "metadata_fields": "blob_size",
+            },
+        )
+        assert response.status_code == 200
+        assert [
+            (i["@id"].rsplit("/", 1)[-1], i["blob_size"])
+            for i in (response.json()["items"])
+        ] == [("big", 2 * MB)]

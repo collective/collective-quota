@@ -47,3 +47,28 @@ class TestSetupUninstall:
             "plone.globalstatusmessage", portal.getCurrentSkinName()
         )
         assert "collective.quota.warning" not in order
+
+    def test_total_usage_is_zero(self, portal):
+        from collective.quota.usage import get_total_usage
+
+        assert get_total_usage(portal) == 0
+
+    def test_pages_render(self, portal, http_request):
+        assert "<html" in portal.restrictedTraverse("@@view")()
+
+
+def test_views_gone_after_uninstall(browser, functional_portal):
+    """Over HTTP the browser layer is no longer applied, so the views are gone."""
+    from plone.base.utils import get_installer
+    from zExceptions import NotFound
+
+    import transaction
+
+    get_installer(functional_portal).uninstall_product(PACKAGE_NAME)
+    transaction.commit()
+    test_browser = browser("Manager")
+    test_browser.open(functional_portal.absolute_url())
+    assert "@@quota-usage" not in test_browser.contents
+    for view in ("@@quota-usage", "@@quota-controlpanel"):
+        with pytest.raises(NotFound):
+            test_browser.open(f"{functional_portal.absolute_url()}/{view}")

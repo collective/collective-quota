@@ -1,0 +1,1 @@
+Drop the `plone.volto` dependency and Plone 6.0 support: the add-on targets Classic UI on Plone 6.1 and 6.2, and installs `plone.restapi`.

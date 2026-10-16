@@ -4,7 +4,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2026-10-16 10:16+0000\n"
+"POT-Creation-Date: 2026-10-16 11:59+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,6 +112,10 @@ msgstr ""
 
 #: collective/quota/browser/summary.py:49
 msgid "Disk quota exceeded: this site uses ${used} of ${limit}. ${policy_hint}"
+msgstr ""
+
+#: collective/quota/profiles.zcml:14
+msgid "Disk quota for Plone sites: measures the space used by uploaded files and images, warns editors near the limit, enforces a hard limit, and helps find and delete the biggest items."
 msgstr ""
 
 #: collective/quota/browser/templates/usage.pt:14
@@ -328,10 +332,6 @@ msgstr ""
 
 #: collective/quota/policy.py:25
 msgid "This file cannot be saved: the site has reached its disk quota (${used} of ${limit}). Delete or shrink existing files first."
-msgstr ""
-
-#: collective/quota/profiles.zcml:14
-msgid "This product allows to configure a quota limit for Plone sites. It also provides a convenient view for quickly finding the biggest items in case you need to delete"
 msgstr ""
 
 #: collective/quota/browser/templates/delete_confirmation.pt:40

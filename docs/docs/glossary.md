@@ -1,18 +1,11 @@
 ---
 myst:
   html_meta:
-    "description": "Terms and definitions used throughout the Plone Sphinx Theme documentation."
-    "property=og:description": "Terms and definitions used throughout the Plone Sphinx Theme documentation."
+    "description": "Terms used in the Collective Quota documentation."
+    "property=og:description": "Terms used in the Collective Quota documentation."
     "property=og:title": "Glossary"
-    "keywords": "Plone, documentation, glossary, term, definition"
+    "keywords": "Plone, Collective Quota, glossary"
 ---
-
-This glossary provides example terms and definitions relevant to **Collective Quota**.
-This product allows to configure a quota limit for Plone sites. It also provides a convenient view for quickly finding the biggest items in case you need to delete
-
-```{note}
-This is an example glossary demonstrating MyST Markdown’s `{glossary}` directive. You can adapt it for your project’s appendix by editing or replacing these entries with your own terms and definitions.
-```
 
 (glossary-label)=
 
@@ -21,37 +14,41 @@ This is an example glossary demonstrating MyST Markdown’s `{glossary}` directi
 ```{glossary}
 :sorted: true
 
+blob_size
+    The catalog index and metadata column holding, for each item, the sum in bytes of
+    its file and image fields. See {doc}`reference/catalog-index`.
+
+Soft limit
+    The usage at which editors start to see a warning. It never blocks anything.
+
+Hard limit
+    The usage above which the {term}`policy` applies to saves.
+
+policy
+    What happens to a save that would push usage above the {term}`hard limit`:
+    `block_all`, `block_files`, `limit_file_size` or `allow`.
+
+commit guard
+    A check at the end of every transaction that adds bytes or items; it cancels
+    changes that crossed the {term}`hard limit` without being approved by a form or
+    the REST API. See {doc}`reference/commit-guard`.
+
+locked setting
+    A setting whose environment variable is set while
+    `COLLECTIVE_QUOTA_LOCK_SETTINGS` is on. The control panel and the REST API cannot
+    change it.
+
 Plone
     [Plone](https://plone.org/) is an open-source content management system that is used to create, edit, and manage digital content, like websites, intranets and custom solutions.
-    It comes with over 20 years of growth, optimisations, and refinements.
-    The result is a system trusted by governments, universities, businesses, and other organisations all over the world.
 
 add-on
     An add-on in Plone extends its functionality.
     It is code that is released as a package to make it easier to install.
 
-    In Volto, an add-on is a JavaScript package.
-
-    In Plone core, an add-on is a Python package.
-
-    -   [Plone core add-ons](https://github.com/collective/awesome-plone#readme)
-    -   [Volto add-ons](https://github.com/collective/awesome-volto#readme)
-    -   [Add-ons tagged with the trove classifier `Framework :: Plone` on PyPI](https://pypi.org/search/?c=Framework+%3A%3A+Plone)
-
-Plone Sphinx Theme
-plone-sphinx-theme
-    [Plone Sphinx Theme](https://plone-sphinx-theme.readthedocs.io/) is a Sphinx theme for [Plone 6 Documentation](https://6.docs.plone.org/), [Plone Conference Training](https://training.plone.org/), and documentation of various Plone packages.
-    This scaffold uses Plone Sphinx Theme.
-
 Markedly Structured Text
 MyST
-    [Markedly Structured Text (MyST)](https://myst-parser.readthedocs.io/en/latest/) is a rich and extensible flavor of Markdown, for authoring Plone Documentation.
-    The sample documentation in this scaffold is written in MyST.
+    [Markedly Structured Text (MyST)](https://myst-parser.readthedocs.io/en/latest/) is a rich and extensible flavor of Markdown, used to write this documentation.
 
-Sphinx
-    [Sphinx](https://www.sphinx-doc.org/en/master/) is a tool that makes it easy to create intelligent and beautiful documentation.
-    It was originally created for Python documentation, and it has excellent facilities for the documentation of software projects in a range of languages.
-    It can generate multiple output formats, including HTML and PDF, from a single source.
-    This scaffold uses Sphinx to generate documentation in HTML format.
-
+Plone Sphinx Theme
+    [Plone Sphinx Theme](https://plone-sphinx-theme.readthedocs.io/) is the Sphinx theme of this documentation.
 ```

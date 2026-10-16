@@ -1,0 +1,1 @@
+Add the Quota control panel (`@@quota-controlpanel`, also `@controlpanels/collective-quota` over REST) with soft limit, hard limit, policy and maximum file size; every setting can come from a `COLLECTIVE_QUOTA_*` environment variable, optionally locked with `COLLECTIVE_QUOTA_LOCK_SETTINGS`.

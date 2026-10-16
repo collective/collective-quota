@@ -1,0 +1,7 @@
+CMFEditions
+[Cc]onfiglet
+dataclass
+[Rr]eindex(es)?
+[Ss]avepoints?
+systemd
+[Uu]nindex(es)?

@@ -1,7 +1,8 @@
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2026-10-16 10:16+0000\n"
+"POT-Creation-Date: 2026-10-16 11:59+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -10,392 +11,392 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0\n"
 "Language-Code: es\n"
-"Language-Name: English\n"
+"Language-Name: Español\n"
 "Preferred-Encodings: utf-8 latin1\n"
-"Domain: DOMAIN\n"
+"Domain: collective.quota\n"
 
 #: collective/quota/controlpanels/quota.py:55
 msgid "${size} MB"
-msgstr ""
+msgstr "${size} MB"
 
 #: collective/quota/browser/templates/usage.pt:180
 msgid "Actions"
-msgstr ""
+msgstr "Acciones"
 
 #: collective/quota/vocabularies/policies.py:18
 msgid "Allow everything, only show warnings"
-msgstr ""
+msgstr "Permitir todo, solo mostrar avisos"
 
 #: collective/quota/vocabularies/policies.py:16
 msgid "Allow new items, block uploads that add bytes"
-msgstr ""
+msgstr "Permitir elementos nuevos, bloquear las subidas que añaden bytes"
 
 #: collective/quota/vocabularies/policies.py:17
 msgid "Allow uploads up to a maximum file size"
-msgstr ""
+msgstr "Permitir subidas hasta un tamaño máximo de archivo"
 
 #: collective/quota/vocabularies/policies.py:15
 msgid "Block new items and any upload that adds bytes"
-msgstr ""
+msgstr "Bloquear elementos nuevos y cualquier subida que añada bytes"
 
 #: collective/quota/browser/templates/delete_confirmation.pt:117
 msgid "Cancel"
-msgstr ""
+msgstr "Cancelar"
 
 #: collective/quota/profiles.zcml:23
 msgid "Collective Quota: Example content"
-msgstr ""
+msgstr "Collective Quota: contenido de ejemplo"
 
 #: collective/quota/profiles.zcml:14
 msgid "Collective Quota: Install"
-msgstr ""
+msgstr "Collective Quota: instalación"
 
 #: collective/quota/profiles.zcml:31
 msgid "Collective Quota: Uninstall"
-msgstr ""
+msgstr "Collective Quota: desinstalación"
 
 #: collective/quota/controlpanels/quota.py:38
 msgid "Control panel"
-msgstr ""
+msgstr "Panel de control"
 
 #: collective/quota/profiles.zcml:23
 msgid "Create example content to showcase this addon."
-msgstr ""
+msgstr "Crea contenido de ejemplo para mostrar este complemento."
 
 #: collective/quota/browser/templates/controlpanel.pt:33
 msgid "Current usage"
-msgstr ""
+msgstr "Uso actual"
 
 #: collective/quota/controlpanels/quota.py:75
 msgid "Currently: ${value} (built-in default)."
-msgstr ""
+msgstr "Actualmente: ${value} (valor predeterminado)."
 
 #: collective/quota/controlpanels/quota.py:63
 msgid "Currently: ${value} (from environment variable ${variable}, locked)."
-msgstr ""
+msgstr "Actualmente: ${value} (de la variable de entorno ${variable}, bloqueado)."
 
 #: collective/quota/controlpanels/quota.py:68
 msgid "Currently: ${value} (from environment variable ${variable}; a value saved here takes precedence)."
-msgstr ""
+msgstr "Actualmente: ${value} (de la variable de entorno ${variable}; un valor guardado aquí tiene prioridad)."
 
 #: collective/quota/controlpanels/quota.py:74
 msgid "Currently: ${value} (set in this control panel)."
-msgstr ""
+msgstr "Actualmente: ${value} (definido en este panel de control)."
 
 #: collective/quota/controlpanels/quota.py:41
 msgid "Default"
-msgstr ""
+msgstr "Predeterminado"
 
 #: collective/quota/browser/templates/delete_confirmation.pt:111
 #: collective/quota/browser/templates/usage.pt:238
 msgid "Delete"
-msgstr ""
+msgstr "Eliminar"
 
 #: collective/quota/browser/templates/usage.pt:250
 msgid "Delete selected"
-msgstr ""
+msgstr "Eliminar seleccionados"
 
 #: collective/quota/browser/templates/delete_confirmation.pt:19
 msgid "Delete selected items"
-msgstr ""
+msgstr "Eliminar los elementos seleccionados"
 
 #: collective/quota/browser/delete.py:114
 msgid "Deleted ${count} items, freeing ${size}."
-msgstr ""
+msgstr "Se eliminaron ${count} elementos y se liberaron ${size}."
 
 #: collective/quota/browser/templates/quota_error.pt:12
 msgid "Disk quota exceeded"
-msgstr ""
+msgstr "Cuota de disco superada"
 
 #: collective/quota/browser/summary.py:49
 msgid "Disk quota exceeded: this site uses ${used} of ${limit}. ${policy_hint}"
-msgstr ""
+msgstr "Cuota de disco superada: este sitio usa ${used} de ${limit}. ${policy_hint}"
+
+#: collective/quota/profiles.zcml:14
+msgid "Disk quota for Plone sites: measures the space used by uploaded files and images, warns editors near the limit, enforces a hard limit, and helps find and delete the biggest items."
+msgstr "Cuota de disco para sitios Plone: mide el espacio que ocupan los archivos e imágenes subidos, avisa a los editores cerca del límite, aplica un límite estricto y ayuda a encontrar y eliminar los elementos más grandes."
 
 #: collective/quota/browser/templates/usage.pt:14
 #: collective/quota/profiles/default/actions.xml
 msgid "Disk usage"
-msgstr ""
+msgstr "Uso del disco"
 
 #: collective/quota/browser/summary.py:60
 msgid "Disk usage warning: this site uses ${used} of ${limit} (${percent}%). Please review large files before the limit is reached."
-msgstr ""
+msgstr "Aviso de uso del disco: este sitio usa ${used} de ${limit} (${percent}%). Revise los archivos grandes antes de alcanzar el límite."
 
 #: collective/quota/browser/templates/delete_confirmation.pt:30
 msgid "Do you really want to delete the following ${count} items (${size} in total)?"
-msgstr ""
+msgstr "¿Seguro que desea eliminar los siguientes ${count} elementos (${size} en total)?"
 
 #: collective/quota/browser/templates/usage.pt:229
 msgid "Edit"
-msgstr ""
+msgstr "Editar"
 
 #: collective/quota/controlpanels/quota.py:39
 msgid "Environment"
-msgstr ""
+msgstr "Entorno"
 
 #: collective/quota/controlpanels/quota.py:40
 msgid "Environment (locked)"
-msgstr ""
+msgstr "Entorno (bloqueado)"
 
 #: collective/quota/browser/templates/controlpanel.pt:128
 msgid "Environment variable"
-msgstr ""
+msgstr "Variable de entorno"
 
 #: collective/quota/browser/templates/quota_error.pt:25
 msgid "Go back"
-msgstr ""
+msgstr "Volver"
 
 #: collective/quota/interfaces.py:40
 msgid "Hard limit (MB)"
-msgstr ""
+msgstr "Límite estricto (MB)"
 
 #: collective/quota/browser/templates/controlpanel.pt:76
 #: collective/quota/browser/templates/usage.pt:65
 msgid "Hard limit:"
-msgstr ""
+msgstr "Límite estricto:"
 
 #: collective/quota/interfaces.py:52
 msgid "Leave empty to use the environment variable or the default."
-msgstr ""
+msgstr "Déjelo vacío para usar la variable de entorno o el valor predeterminado."
 
 #: collective/quota/controlpanels/quota.py:82
 msgid "Limits apply to the bytes stored in file and image fields across the whole site."
-msgstr ""
+msgstr "Los límites se aplican a los bytes guardados en campos de archivo e imagen de todo el sitio."
 
 #: collective/quota/browser/templates/usage.pt:175
 msgid "Location"
-msgstr ""
+msgstr "Ubicación"
 
 #: collective/quota/interfaces.py:58
 msgid "Maximum file size over the limit (MB)"
-msgstr ""
+msgstr "Tamaño máximo de archivo por encima del límite (MB)"
 
 #: collective/quota/browser/templates/usage.pt:179
 msgid "Modified"
-msgstr ""
+msgstr "Modificado"
 
 #: collective/quota/browser/summary.py:30
 msgid "New content and uploads are blocked until files are removed."
-msgstr ""
+msgstr "El contenido nuevo y las subidas están bloqueados hasta que se eliminen archivos."
 
 #: collective/quota/policy.py:33
 msgid "New content cannot be added: the site has reached its disk quota (${used} of ${limit}). Delete or shrink existing files first."
-msgstr ""
+msgstr "No se puede añadir contenido nuevo: el sitio alcanzó su cuota de disco (${used} de ${limit}). Primero elimine o reduzca archivos existentes."
 
 #: collective/quota/browser/delete.py:41
 msgid "No items selected."
-msgstr ""
+msgstr "No se seleccionó ningún elemento."
 
 #: collective/quota/browser/templates/usage.pt:156
 msgid "No uploaded files or images found."
-msgstr ""
+msgstr "No se encontraron archivos ni imágenes subidos."
 
 #: collective/quota/browser/templates/delete_confirmation.pt:94
 msgid "None of the selected items exist any more."
-msgstr ""
+msgstr "Ninguno de los elementos seleccionados existe ya."
 
 #: collective/quota/browser/templates/quota_error.pt:20
 msgid "Nothing was saved. Delete or shrink existing files, or ask a site administrator to raise the quota."
-msgstr ""
+msgstr "No se guardó nada. Elimine o reduzca archivos existentes, o pida a un administrador del sitio que aumente la cuota."
 
 #: collective/quota/browser/templates/usage.pt:124
 msgid "Number of items"
-msgstr ""
+msgstr "Número de elementos"
 
 #: collective/quota/browser/summary.py:38
 msgid "Only files up to ${max_size} can be uploaded until files are removed."
-msgstr ""
+msgstr "Solo se pueden subir archivos de hasta ${max_size} hasta que se eliminen archivos."
 
 #: collective/quota/interfaces.py:59
 msgid "Only used by the policy \"Allow uploads up to a maximum file size\". Leave empty to use the environment variable or the default."
-msgstr ""
+msgstr "Solo se usa con la política «Permitir subidas hasta un tamaño máximo de archivo». Déjelo vacío para usar la variable de entorno o el valor predeterminado."
 
 #: collective/quota/interfaces.py:51
 msgid "Policy when the hard limit is reached"
-msgstr ""
+msgstr "Política al alcanzar el límite estricto"
 
 #: collective/quota/browser/templates/controlpanel.pt:83
 #: collective/quota/browser/templates/usage.pt:71
 msgid "Policy:"
-msgstr ""
+msgstr "Política:"
 
 #: collective/quota/controlpanels/restapi.py:49
 #: collective/quota/profiles/default/controlpanel.xml
 msgid "Quota"
-msgstr ""
+msgstr "Cuota"
 
 #: collective/quota/browser/templates/usage.pt:80
 #: collective/quota/controlpanels/quota.py:81
 msgid "Quota settings"
-msgstr ""
+msgstr "Configuración de la cuota"
 
 #: collective/quota/browser/templates/controlpanel.pt:163
 #: collective/quota/browser/templates/usage.pt:94
 msgid "Rebuild usage data"
-msgstr ""
+msgstr "Recalcular los datos de uso"
 
 #: collective/quota/browser/templates/controlpanel.pt:166
 msgid "Recomputes the size of every item and the site total. It walks the whole catalog, so it can take a while on big sites. Use it if the total looks wrong."
-msgstr ""
+msgstr "Vuelve a calcular el tamaño de cada elemento y el total del sitio. Recorre todo el catálogo, así que puede tardar en sitios grandes. Úselo si el total parece incorrecto."
 
 #: collective/quota/controlpanels/quota.py:142
 msgid "Reset to defaults"
-msgstr ""
+msgstr "Restablecer valores predeterminados"
 
 #: collective/quota/browser/templates/controlpanel.pt:95
 msgid "Review biggest items"
-msgstr ""
+msgstr "Revisar los elementos más grandes"
 
 #: collective/quota/browser/templates/warning_viewlet.pt:11
 msgid "Review disk usage"
-msgstr ""
+msgstr "Revisar el uso del disco"
 
 #: collective/quota/browser/templates/usage.pt:166
 msgid "Select all"
-msgstr ""
+msgstr "Seleccionar todo"
 
 #: collective/quota/settings.py:53
 msgid "Set a maximum file size greater than 0 for this policy."
-msgstr ""
+msgstr "Defina un tamaño máximo de archivo mayor que 0 para esta política."
 
 #: collective/quota/browser/templates/controlpanel.pt:125
 msgid "Setting"
-msgstr ""
+msgstr "Opción"
 
 #: collective/quota/controlpanels/restapi.py:94
 msgid "Setting ${name} is locked by environment variable ${variable}"
-msgstr ""
+msgstr "La opción ${name} está bloqueada por la variable de entorno ${variable}"
 
 #: collective/quota/browser/templates/controlpanel.pt:112
 msgid "Settings defined by environment variables are locked (COLLECTIVE_QUOTA_LOCK_SETTINGS is on). Only the server operator can change them."
-msgstr ""
+msgstr "Las opciones definidas por variables de entorno están bloqueadas (COLLECTIVE_QUOTA_LOCK_SETTINGS está activo). Solo el operador del servidor puede cambiarlas."
 
 #: collective/quota/controlpanels/quota.py:149
 msgid "Settings reset. Environment variables or built-in defaults apply now."
-msgstr ""
+msgstr "Opciones restablecidas. Ahora se aplican las variables de entorno o los valores predeterminados."
 
 #: collective/quota/browser/templates/usage.pt:140
 msgid "Show"
-msgstr ""
+msgstr "Mostrar"
 
 #: collective/quota/browser/templates/delete_confirmation.pt:42
 #: collective/quota/browser/templates/usage.pt:176
 msgid "Size"
-msgstr ""
+msgstr "Tamaño"
 
 #: collective/quota/browser/templates/usage.pt:261
 msgid "Sizes include only uploaded files and images. Showing the ${limit} largest items you can see."
-msgstr ""
+msgstr "Los tamaños solo incluyen archivos e imágenes subidos. Se muestran los ${limit} elementos más grandes que puede ver."
 
 #: collective/quota/browser/delete.py:125
 msgid "Skipped ${title}: ${reason}."
-msgstr ""
+msgstr "Se omitió ${title}: ${reason}."
 
 #: collective/quota/interfaces.py:29
 msgid "Soft limit (MB)"
-msgstr ""
+msgstr "Límite de aviso (MB)"
 
 #: collective/quota/browser/templates/controlpanel.pt:69
 #: collective/quota/browser/templates/usage.pt:59
 msgid "Soft limit:"
-msgstr ""
+msgstr "Límite de aviso:"
 
 #: collective/quota/browser/templates/controlpanel.pt:127
 msgid "Source"
-msgstr ""
+msgstr "Origen"
 
 #: collective/quota/guard.py:36
 msgid "The change was cancelled: it would add ${delta} to the site and exceed the disk quota (${used} of ${limit})."
-msgstr ""
+msgstr "Se canceló el cambio: añadiría ${delta} al sitio y superaría la cuota de disco (${used} de ${limit})."
 
 #: collective/quota/guard.py:40
 msgid "The change was cancelled: new content cannot be added while the site exceeds its disk quota (${used} of ${limit})."
-msgstr ""
+msgstr "Se canceló el cambio: no se puede añadir contenido nuevo mientras el sitio supera su cuota de disco (${used} de ${limit})."
 
 #: collective/quota/browser/templates/delete_confirmation.pt:80
 msgid "The following items will not be deleted:"
-msgstr ""
+msgstr "Los siguientes elementos no se eliminarán:"
 
 #: collective/quota/policy.py:29
 msgid "The site has reached its disk quota (${used} of ${limit}); only files up to ${max_size} can be added now. This file is ${size}."
-msgstr ""
+msgstr "El sitio alcanzó su cuota de disco (${used} de ${limit}); ahora solo se pueden añadir archivos de hasta ${max_size}. Este archivo ocupa ${size}."
 
 #: collective/quota/settings.py:52
 msgid "The soft limit cannot be higher than the hard limit."
-msgstr ""
+msgstr "El límite de aviso no puede ser mayor que el límite estricto."
 
 #: collective/quota/policy.py:25
 msgid "This file cannot be saved: the site has reached its disk quota (${used} of ${limit}). Delete or shrink existing files first."
-msgstr ""
-
-#: collective/quota/profiles.zcml:14
-msgid "This product allows to configure a quota limit for Plone sites. It also provides a convenient view for quickly finding the biggest items in case you need to delete"
-msgstr ""
+msgstr "No se puede guardar este archivo: el sitio alcanzó su cuota de disco (${used} de ${limit}). Primero elimine o reduzca archivos existentes."
 
 #: collective/quota/browser/templates/delete_confirmation.pt:40
 #: collective/quota/browser/templates/usage.pt:173
 msgid "Title"
-msgstr ""
+msgstr "Título"
 
 #: collective/quota/browser/templates/controlpanel.pt:37
 #: collective/quota/browser/templates/usage.pt:26
 msgid "Total:"
-msgstr ""
+msgstr "Total:"
 
 #: collective/quota/browser/templates/delete_confirmation.pt:41
 #: collective/quota/browser/templates/usage.pt:174
 msgid "Type"
-msgstr ""
+msgstr "Tipo"
 
 #: collective/quota/profiles.zcml:31
 msgid "Uninstall Collective Quota setup."
-msgstr ""
+msgstr "Desinstala la configuración de Collective Quota."
 
 #: collective/quota/browser/summary.py:31
 msgid "Uploads are blocked until files are removed."
-msgstr ""
+msgstr "Las subidas están bloqueadas hasta que se eliminen archivos."
 
 #: collective/quota/browser/summary.py:32
 msgid "Uploads are still allowed."
-msgstr ""
+msgstr "Las subidas siguen permitidas."
 
 #: collective/quota/browser/rebuild.py:24
 msgid "Usage data rebuilt: ${count} items, ${total} in total."
-msgstr ""
+msgstr "Datos de uso recalculados: ${count} elementos, ${total} en total."
 
 #: collective/quota/browser/templates/controlpanel.pt:126
 msgid "Value"
-msgstr ""
+msgstr "Valor"
 
 #: collective/quota/interfaces.py:41
 msgid "When a save would push total usage above this value, the policy below applies. 0 disables enforcement. Leave empty to use the environment variable or the default."
-msgstr ""
+msgstr "Cuando un guardado haría que el uso total supere este valor, se aplica la política de abajo. 0 desactiva el control. Déjelo vacío para usar la variable de entorno o el valor predeterminado."
 
 #: collective/quota/interfaces.py:30
 msgid "When total usage reaches this value, editors see a warning. 0 disables the warning. Leave empty to use the environment variable or the default."
-msgstr ""
+msgstr "Cuando el uso total alcanza este valor, los editores ven un aviso. 0 desactiva el aviso. Déjelo vacío para usar la variable de entorno o el valor predeterminado."
 
 #: collective/quota/browser/templates/controlpanel.pt:109
 msgid "Where the values come from"
-msgstr ""
+msgstr "De dónde vienen los valores"
 
 #: collective/quota/browser/templates/usage.pt:198
 msgid "You cannot delete this item"
-msgstr ""
+msgstr "No puede eliminar este elemento"
 
 #: collective/quota/browser/templates/controlpanel.pt:71
 #: collective/quota/browser/templates/usage.pt:61
 msgid "disabled"
-msgstr ""
+msgstr "desactivado"
 
 #: collective/quota/browser/delete.py:27
 msgid "it is locked by another user"
-msgstr ""
+msgstr "está bloqueado por otro usuario"
 
 #: collective/quota/browser/templates/controlpanel.pt:42
 #: collective/quota/browser/templates/usage.pt:31
 msgid "of"
-msgstr ""
+msgstr "de"
 
 #: collective/quota/browser/delete.py:26
 msgid "you are not allowed to delete it"
-msgstr ""
+msgstr "no tiene permiso para eliminarlo"

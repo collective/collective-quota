@@ -1,0 +1,60 @@
+{
+  "@id": "/about-the-quota",
+  "@type": "Document",
+  "UID": "3184cd925057447aacacbb55cc2b8f15",
+  "allow_discussion": null,
+  "changeNote": "",
+  "contributors": [],
+  "created": "2026-10-16T11:55:47+00:00",
+  "creators": [
+    "admin"
+  ],
+  "description": "Links to the annual report, so deleting it shows a link-integrity warning.",
+  "effective": null,
+  "exclude_from_nav": false,
+  "expires": null,
+  "exportimport.constrains": {},
+  "exportimport.conversation": [],
+  "id": "about-the-quota",
+  "is_folderish": false,
+  "language": "##DEFAULT##",
+  "layout": "document_view",
+  "lock": {
+    "locked": false,
+    "stealable": true
+  },
+  "modified": "2026-10-16T11:55:47+00:00",
+  "review_state": "published",
+  "rights": "",
+  "subjects": [],
+  "table_of_contents": null,
+  "text": {
+    "content-type": "text/html",
+    "data": "<p>Open <strong>Disk usage</strong> in the user menu to see the biggest items. This page links to the <a href=\"resolveuid/afb0a2ccbeb240f9baa9f0e64feed7e5\">annual report</a>; try deleting the report from the disk usage view to see the link-integrity warning.</p>",
+    "encoding": "utf-8"
+  },
+  "title": "About the quota",
+  "type_title": "Page",
+  "version": "current",
+  "versioning_enabled": true,
+  "workflow_history": {
+    "simple_publication_workflow": [
+      {
+        "action": null,
+        "actor": "admin",
+        "comments": "",
+        "review_state": "private",
+        "time": "2026-10-16T11:55:47+00:00"
+      },
+      {
+        "action": "publish",
+        "actor": "admin",
+        "comments": "",
+        "review_state": "published",
+        "time": "2026-10-16T11:55:47+00:00"
+      }
+    ]
+  },
+  "working_copy": null,
+  "working_copy_of": null
+}

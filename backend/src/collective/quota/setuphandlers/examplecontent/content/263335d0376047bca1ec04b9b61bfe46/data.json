@@ -1,0 +1,38 @@
+{
+  "@id": "/media/dataset",
+  "@type": "File",
+  "UID": "263335d0376047bca1ec04b9b61bfe46",
+  "allow_discussion": null,
+  "contributors": [],
+  "created": "2026-10-16T11:55:47+00:00",
+  "creators": [
+    "admin"
+  ],
+  "description": "A 500 KB sample file.",
+  "effective": null,
+  "exclude_from_nav": false,
+  "expires": null,
+  "exportimport.constrains": {},
+  "exportimport.conversation": [],
+  "file": {
+    "blob_path": "263335d0376047bca1ec04b9b61bfe46/file/dataset.bin",
+    "content-type": "application/octet-stream",
+    "filename": "dataset.bin",
+    "size": 512000
+  },
+  "id": "dataset",
+  "is_folderish": false,
+  "language": "##DEFAULT##",
+  "layout": "file_view",
+  "lock": {},
+  "modified": "2026-10-16T11:55:47+00:00",
+  "review_state": null,
+  "rights": "",
+  "subjects": [],
+  "title": "Dataset",
+  "type_title": "File",
+  "version": "current",
+  "workflow_history": {},
+  "working_copy": null,
+  "working_copy_of": null
+}

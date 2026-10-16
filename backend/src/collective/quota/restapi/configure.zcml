@@ -7,6 +7,9 @@
   <!-- Hook C: block_all refuses new items created through REST. -->
   <adapter factory=".deserializer.QuotaAwareDeserializer" />
 
+  <!-- Integer values for @search queries on blob_size. -->
+  <adapter factory=".query.BlobSizeIndexQueryParser" />
+
   <!-- -*- extra stuff goes here -*- -->
 
 </configure>

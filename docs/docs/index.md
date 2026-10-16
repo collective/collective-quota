@@ -1,22 +1,24 @@
 ---
 myst:
   html_meta:
-    "description": "This product allows to configure a quota limit for Plone sites. It also provides a convenient view for quickly finding the biggest items in case you need to delete"
-    "property=og:description": "This product allows to configure a quota limit for Plone sites. It also provides a convenient view for quickly finding the biggest items in case you need to delete"
+    "description": "Disk quota for Plone sites: measures the space used by uploaded files and images, warns editors near the limit, enforces a hard limit, and helps find and delete the biggest items."
+    "property=og:description": "Disk quota for Plone sites: measures the space used by uploaded files and images, warns editors near the limit, enforces a hard limit, and helps find and delete the biggest items."
     "property=og:title": "Collective Quota"
-    "keywords": "Collective Quota, documentation, This product allows to configure a quota limit for Plone sites. It also provides a convenient view for quickly finding the biggest items in case you need to delete"
+    "keywords": "Collective Quota, documentation, Disk quota for Plone sites: measures the space used by uploaded files and images, warns editors near the limit, enforces a hard limit, and helps find and delete the biggest items."
 ---
 
 # Collective Quota
 
-Welcome to the documentation for Collective Quota!
-This product allows to configure a quota limit for Plone sites. It also provides a convenient view for quickly finding the biggest items in case you need to delete
+Collective Quota is a disk quota add-on for Plone 6.1 and 6.2 (Classic UI).
+It measures the space used by uploaded files and images, warns editors near the limit,
+enforces a hard limit, and helps find and delete the biggest items.
 
-This scaffold provides a ready-to-use environment for creating comprehensive documentation for {term}`Plone` projects, based on {term}`Plone Sphinx Theme`.
+-   New to the add-on? Follow {doc}`tutorials/set-up-a-quota`.
+-   Looking for a specific task? See the {doc}`how-to-guides/index`.
+-   Want to understand what is counted and how limits work? Read the {doc}`concepts/index`.
+-   Need exact names, settings and APIs? Go to the {doc}`reference/index`.
 
-Built with Markedly Structured Text ({term}`MyST`), this environment supports rich formatting, directives, and extensions tailored for technical documentation.
-
-It's structured following the [Diátaxis](https://diataxis.fr/) documentation framework.
+This documentation follows the [Diátaxis](https://diataxis.fr/) framework.
 
 ```{toctree}
 :caption: How to guides

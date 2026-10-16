@@ -1,5 +1,6 @@
 """Hook C: refuse new items created through plone.restapi under ``block_all``."""
 
+from collective.quota.guard import is_suspended
 from collective.quota.guard import record_approved_add
 from collective.quota.interfaces import IQuotaRestapiLayer
 from collective.quota.policy import evaluate_add
@@ -23,7 +24,9 @@ class QuotaAwareDeserializer(DeserializeFromJson):
     def __call__(
         self, validate_all=False, data=None, create=False, mask_validation_errors=True
     ):
-        if create:
+        # Imports (plone.exportimport) deserialize through here too; trusted
+        # code inside guard_suspended() is not checked.
+        if create and not is_suspended():
             decision = evaluate_add(get_total_usage(), get_settings())
             if not decision.allowed:
                 raise BadRequest(translate(decision.message, context=self.request))

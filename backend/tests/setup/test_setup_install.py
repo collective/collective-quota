@@ -38,3 +38,18 @@ class TestSetupInstall:
     def test_configlet(self, portal):
         ids = [a.getId() for a in portal.portal_controlpanel.listActions()]
         assert "collective-quota" in ids
+
+    def test_reinstall_repopulates(self, portal, installer, make_file):
+        from collective.quota.usage import get_total_usage
+        from plone.registry.interfaces import IRegistry
+        from zope.component import getUtility
+
+        make_file(portal, "a", 3000)
+        installer.uninstall_product(PACKAGE_NAME)
+        make_file(portal, "b", 2000)  # created while the add-on is not installed
+        installer.install_product(PACKAGE_NAME)
+        assert get_total_usage(portal) == 5000
+        brains = portal.portal_catalog(portal_type="File", sort_on="blob_size")
+        assert [(b.getId, b.blob_size) for b in brains] == [("b", 2000), ("a", 3000)]
+        assert "disk-usage" in portal.portal_actions.user.objectIds()
+        assert "collective.quota.hard_limit_mb" in getUtility(IRegistry).records

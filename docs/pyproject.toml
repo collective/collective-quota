@@ -1,6 +1,6 @@
 [project]
 name = "Collective_Quota_Documentation"
-description = "This product allows to configure a quota limit for Plone sites. It also provides a convenient view for quickly finding the biggest items in case you need to delete"
+description = "Disk quota for Plone sites: measures the space used by uploaded files and images, warns editors near the limit, enforces a hard limit, and helps find and delete the biggest items."
 keywords = [
     "Collective Quota",
     "documentation",

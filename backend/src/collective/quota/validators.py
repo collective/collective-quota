@@ -4,6 +4,7 @@ Runs inside ``NamedField.validate()``, which z3c.form (Classic add/edit forms)
 and plone.restapi (POST/PATCH, base64, multipart, TUS) both call.
 """
 
+from collective.quota.guard import is_suspended
 from collective.quota.guard import record_approved_bytes
 from collective.quota.indexers.blob_size import get_stored_value
 from collective.quota.policy import evaluate_upload
@@ -54,6 +55,8 @@ class QuotaUploadValidator:
         value = self.value
         if value is None or not hasattr(value, "getSize"):
             return
+        if is_suspended():
+            return  # trusted Python code (imports, migrations); see guard_suspended
         old_value = _old_value(self.field)
         if old_value is value:
             return  # unchanged: "keep existing file" or a re-sent representation
