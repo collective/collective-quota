@@ -52,7 +52,7 @@ Anonymous users never see any of it.
 The features are the same as in Classic UI:
 
 - **Disk usage page**: the total, the limits and the policy in effect, and the biggest
-  items. Choose how many items to show (10, 25, 50 or 100). Select items and click
+  items. Choose how many items to show (10, 25, 50 or 100). Select items, then select
   **Delete selected**: the confirmation lists the links that would break, like
   Volto's folder contents. A message then tells you how much space was freed.
 - **Warning banner**: yellow at the soft limit, red at the hard limit. It goes away by

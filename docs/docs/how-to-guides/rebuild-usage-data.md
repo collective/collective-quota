@@ -9,19 +9,19 @@ myst:
 
 # Rebuild usage data on a large site
 
-The catalog keeps the usage numbers up to date, so you rarely need this. Rebuild when
+The catalog keeps the usage numbers up to date, so most sites never need this. Rebuild when
 the total looks wrong, for example after restoring a database backup or after changing
 the catalog outside Plone.
 
 ## From the browser
 
-As a Manager or Site Administrator, click **Rebuild usage data** at the bottom of the
+As a Manager or Site Administrator, select **Rebuild usage data** at the bottom of the
 Quota control panel, or under the summary of the disk usage page. It re-catalogs
 every item in one request, which is fine for small and medium sites.
 
 ## With a script
 
-On very large sites, one request may take too long. Use the script
+On large sites, one request may take too long. Use the script
 [`backend/scripts/rebuild_blob_size.py`](https://github.com/collective/collective-quota/blob/main/backend/scripts/rebuild_blob_size.py)
 from the source repository, which commits every 1000 items. Copy it into your
 project and run it, passing the site id. With a plain `Data.fs` (FileStorage), stop

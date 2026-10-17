@@ -29,7 +29,7 @@ You need a Plone 6.1 or 6.2 Classic UI project and the Manager role.
 ## Look at the current usage
 
 1.  Open **Site Setup → Quota**. **Current usage** shows the total. Write it down.
-2.  Open your user menu and click **Disk usage**. The biggest items of the site are
+2.  Open your user menu and select **Disk usage**. The biggest items of the site are
     listed, biggest first.
 
 ## Choose the limits
@@ -41,7 +41,7 @@ Say the site uses 3.4 GB and you want to allow 5 GB.
 2.  Keep the policy **Block new items and any upload that adds bytes**, or choose
     **Allow new items, block uploads that add bytes** if editors should still be able
     to add pages.
-3.  Click **Save**. Nothing changes for editors yet: the site is under both limits.
+3.  Select **Save**. Nothing changes for editors yet: the site is under both limits.
 
 ## See the warning
 
@@ -60,11 +60,11 @@ The banner turns red, and as an editor:
 
 ## Free some space
 
-1.  Click **Review disk usage** in the banner.
-2.  Tick two big files you do not need and click **Delete selected**.
+1.  Select **Review disk usage** in the banner.
+2.  Tick two big files you do not need and select **Delete selected**.
 3.  If a page links to one of them, the confirmation page says so. Edit that page
     first, or delete anyway.
-4.  Click **Delete**. The message says how much space was freed, and the summary at
+4.  Select **Delete**. The message says how much space was freed, and the summary at
     the top shows the new total.
 
 ## Put the real limits back

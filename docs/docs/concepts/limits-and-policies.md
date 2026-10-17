@@ -64,7 +64,7 @@ field. The REST API checks the same way and answers `400 Bad Request`.
 Everything else (copy and paste, `plone.api` calls in scripts, imports, other
 add-ons) is checked by the {term}`commit guard` when the transaction ends. If the
 change crossed the hard limit without a form or the REST API having approved it,
-the whole transaction is cancelled. Bypass paths are judged more strictly than forms:
+the whole transaction is cancelled. Bypass paths get stricter checks than forms:
 under `limit_file_size`, a paste of small files that crosses the limit is cancelled
 too, because no form approved it.
 

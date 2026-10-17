@@ -13,7 +13,7 @@ The **collective.quota: View Disk Usage** permission controls the Disk usage pag
 the user-menu entry and the warning banner. By default, Manager, Site Administrator,
 Editor, Contributor and Reviewer have it.
 
-## In the ZMI
+## In the Zope Management Interface
 
 1.  Open the site in the ZMI and go to its **Security** tab.
 2.  Find **collective.quota: View Disk Usage**.

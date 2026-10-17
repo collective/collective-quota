@@ -21,11 +21,11 @@ You need the **Manager** or **Site Administrator** role.
     {doc}`../concepts/limits-and-policies` for what each one does.
 6.  If you chose **Allow uploads up to a maximum file size**, set **Maximum file size
     over the limit (MB)** to a value greater than 0.
-7.  Click **Save**.
+7.  Select **Save**.
 
 The table **Where the values come from** shows, for every setting, whether it comes
 from this control panel, an environment variable or the default. To go back to the
-environment variables or the defaults, click **Reset to defaults**.
+environment variables or the defaults, select **Reset to defaults**.
 
 ## Over the REST API
 
