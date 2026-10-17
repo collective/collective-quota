@@ -65,11 +65,13 @@ jobs:
   config:
     runs-on: ubuntu-latest
     outputs:
-      acceptance: ${{ steps.filter.outputs.acceptance }}
-      backend: ${{ steps.filter.outputs.backend }}
-      devops: ${{ steps.filter.outputs.devops }}
-      docs: ${{ steps.filter.outputs.docs }}
-      frontend: ${{ steps.filter.outputs.frontend }}
+      # On a manual run or the first push of a branch, paths-filter only
+      # sees the last commit, so run every job instead.
+      acceptance: ${{ steps.filter.outputs.acceptance == 'true' || steps.vars.outputs.run-all == 'true' }}
+      backend: ${{ steps.filter.outputs.backend == 'true' || steps.vars.outputs.run-all == 'true' }}
+      devops: ${{ steps.filter.outputs.devops == 'true' || steps.vars.outputs.run-all == 'true' }}
+      docs: ${{ steps.filter.outputs.docs == 'true' || steps.vars.outputs.run-all == 'true' }}
+      frontend: ${{ steps.filter.outputs.frontend == 'true' || steps.vars.outputs.run-all == 'true' }}
       plone-version: ${{ steps.vars.outputs.plone-version }}
       volto-version: ${{ steps.vars.outputs.volto-version }}
       storybook-deploy: ${{ steps.vars.outputs.storybook-deploy }}
@@ -104,6 +106,7 @@ jobs:
           echo "path-frontend=$(jq -r '.frontend.path' <<< "$REPOSITORY_SETTINGS" | sed "s|^${ROOT}/||")" >> "$GITHUB_OUTPUT"
           echo "path-root=." >> "$GITHUB_OUTPUT"
           echo "storybook-deploy=${{ github.event.repository.private == false }}" >> $GITHUB_OUTPUT
+          echo "run-all=${{ github.event_name == 'workflow_dispatch' || github.event.created == true }}" >> "$GITHUB_OUTPUT"
 
       - uses: dorny/paths-filter@v4.0.3
         id: filter
@@ -121,7 +124,7 @@ jobs:
             docs:
               - '.readthedocs.yaml'
               - 'docs/**'
-              - '.github/workflows/docs.yaml'
+              - '.github/workflows/docs.yml'
             frontend:
               - 'frontend/**'
               - '.github/workflows/frontend*'
@@ -145,6 +148,7 @@ jobs:
           echo 'path-root: ${{ steps.vars.outputs.path-root }}'
           echo 'storybook-deploy: ${{ steps.vars.outputs.storybook-deploy }}'
           echo 'event-name: ${{ github.event_name }}'
+          echo 'run-all: ${{ steps.vars.outputs.run-all }}'
           echo 'Paths - acceptance: ${{ steps.filter.outputs.acceptance }}'
           echo 'Paths - backend: ${{ steps.filter.outputs.backend }}'
           echo 'Paths - devops: ${{ steps.filter.outputs.devops }}'
