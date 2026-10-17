@@ -20,11 +20,11 @@ the same data the Classic views render. Anonymous users never get quota data.
 | `?expand=quota` on any content `GET` | Any content and the site root | View Disk Usage, checked on the site root |
 | `GET`/`PATCH @controlpanels/collective-quota` | Site root | Manage Quota Settings (see {doc}`settings`) |
 
-Without the permission, plone.restapi answers `401 Unauthorized`, for anonymous and
+Without the permission, `plone.restapi` answers `401 Unauthorized`, for anonymous and
 authenticated users alike.
 
 Sizes are always bytes, plus a `*_human` string formatted like Plone does
-(`plone.base.utils.human_readable_size`). Names follow plone.restapi: `@id`, `UID`,
+(`plone.base.utils.human_readable_size`). Names follow `plone.restapi`: `@id`, `UID`,
 `@type`, and `modified` in ISO 8601.
 
 ## `GET @quota-usage`
@@ -81,11 +81,11 @@ curl -u admin:secret -H "Accept: application/json" \
 | `hard`, `hard_human` | int, string or `null` | Hard limit; `0` and `null` when disabled |
 | `percent` | int or `null` | Percentage of the hard limit; `null` without a hard limit |
 | `level` | `ok`, `warning`, `exceeded` | The only value clients should branch on |
-| `limits_configured` | bool | `false` when neither limit is set: show no limit-related UI |
+| `limits_configured` | `bool` | `false` when neither limit is set: show no limit-related UI |
 | `message` | string or `null` | Translated warning text; `null` when `level` is `ok` |
 | `policy`, `policy_title` | token, string | Policy in effect (present even when the hard limit is disabled) |
 | `policy_hint` | string or `null` | Translated sentence on what is blocked; `null` without a hard limit |
-| `can_manage` | bool | The user holds Manage Quota Settings |
+| `can_manage` | `bool` | The user holds Manage Quota Settings |
 | `controlpanel` | URL | REST control panel; present only when `can_manage` is true |
 
 ### Listing fields
@@ -95,7 +95,7 @@ curl -u admin:secret -H "Accept: application/json" \
 | `limit` | Number of items asked for: `limit` from the query string if it is one of `limits`, else `25` |
 | `limits` | Accepted values of `limit` |
 | `items` | The biggest items the user can see, biggest first |
-| `items[].@id`, `UID`, `@type`, `title` | As in plone.restapi summaries |
+| `items[].@id`, `UID`, `@type`, `title` | As in `plone.restapi` summaries |
 | `items[].type_title` | Translated content type title |
 | `items[].parent` | `@id` and `title` of the container |
 | `items[].blob_size`, `blob_size_human` | Size of the item's files and images |
@@ -143,7 +143,7 @@ A user who holds View Disk Usage only through a local role on a folder gets no
 
 ## Deleting items
 
-There is no quota-specific endpoint. Use plone.restapi, as Volto's folder contents does:
+There is no quota-specific endpoint. Use `plone.restapi`, as Volto's folder contents does:
 
 1. `GET @linkintegrity?uids=<uid>&uids=<uid>` to show the links that would break.
 2. `DELETE <item @id>` for each selected item.
