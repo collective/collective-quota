@@ -78,12 +78,12 @@ jobs:
       - name: Start the backend
         run: |
           make ci-acceptance-backend-start > ../backend-acceptance.log 2>&1 &
-          npx --yes wait-on --timeout 180000 http-get://127.0.0.1:55001/plone
+          pnpm dlx wait-on --timeout 180000 http-get://127.0.0.1:55001/plone
 
       - name: Start the frontend
         run: |
           make acceptance-frontend-prod-start > ../frontend-acceptance.log 2>&1 &
-          npx --yes wait-on --timeout 600000 http-get://127.0.0.1:3000
+          pnpm dlx wait-on --timeout 600000 http-get://127.0.0.1:3000
 
       - name: Run Cypress
         run: make ci-acceptance-test
