@@ -8,14 +8,158 @@ Disk quota for Plone sites: measures the space used by uploaded files and images
 
 ## Features ✨
 
-- Measures the size of every file and image field in a `blob_size` catalog index, with a running site-wide total that costs nothing to read.
-- Adds a **Quota** control panel (soft limit, hard limit, over-limit policy, maximum file size), also available over the REST API; every setting can come from a `COLLECTIVE_QUOTA_*` environment variable and can be locked.
-- Enforces the hard limit in Classic add and edit forms and in `plone.restapi`, and cancels any other change (copy/paste, scripts, imports) that would cross it.
-- Adds a **Disk usage** page to the user menu that lists the biggest items and deletes several at once, with Plone's link-integrity warnings.
-- Shows editors a warning banner near the soft limit and a stronger one at the hard limit.
-- Works in Volto too: the add-on `volto-collective-quota` brings the same menu entry, banner, disk usage page and control panel, on top of the REST API (`@quota-usage`, `@quota-rebuild`, `?expand=quota`).
+`collective.quota` has two halves that offer the same features:
 
-The backend add-on, `collective.quota`, works with Plone 6.1 and 6.2 and stands alone in Classic UI. For Volto 19, install both halves. See [backend/README.md](backend/README.md), [frontend/README.md](frontend/README.md) and [docs/](docs/) for the full documentation.
+- **`collective.quota`**, the backend add-on, for Plone 6.1 and 6.2. It measures usage, enforces the limits and brings the Classic UI screens and the REST API. It stands alone on Classic UI sites.
+- **`volto-collective-quota`**, the Volto 19 add-on. It brings the same screens to Volto on top of the REST API, and needs the backend add-on installed.
+
+Both user interfaces read the same numbers and the same messages from the backend, so they always agree. The screenshots below show the same site in both.
+
+### Limits are optional 🧹
+
+Both limits are off by default (`0`), and you can leave them that way. The add-on then enforces nothing and warns about nothing: no banner, no refused uploads, no blocked content. It only measures.
+
+That is enough for routine housekeeping. Editors and administrators open **Disk usage** to see which items take the most space across the whole site, and delete the ones that are no longer needed.
+
+You can also turn on only part of it:
+
+- A soft limit without a hard limit shows the warning banner and never blocks anything.
+- A hard limit with the `allow` policy also only warns.
+
+To go back to measuring only, set both limits to `0` or use **Reset to defaults** in the control panel.
+
+### Usage measured as content changes 📏
+
+- Every item records the total size of its file and image fields in a `blob_size` catalog index: `File`, `Image`, lead images, and any `NamedFile` or `NamedImage` field of custom types and behaviors.
+- The index keeps a running site-wide total, so reading the usage costs no catalog query.
+- Installing the add-on measures the content that already exists.
+- **Rebuild usage data**, in the control panel, recomputes everything if the total ever looks wrong, for example after restoring a database.
+
+See [How usage is measured](docs/docs/concepts/how-usage-is-measured.md) for what counts and what does not.
+
+### Disk usage in the user menu 👤
+
+Editors get a **Disk usage** entry in their user menu. Members and anonymous visitors never see it, or any other usage information.
+
+| Classic UI | Volto |
+|---|---|
+| ![Disk usage entry in the user menu in Classic UI](docs/docs/_static/screenshots/classic-user-menu.png) | ![Disk usage entry in the user menu in Volto](docs/docs/_static/screenshots/volto-user-menu.png) |
+
+### Disk usage page 📊
+
+The page shows the total, a usage bar, the limits and the active policy, then the 10, 25, 50 or 100 biggest items the user can see, with their type, location, size and modification date. Each item links to its view and edit pages.
+
+When no limit is configured, the page still lists the biggest items, with a note that no limits apply.
+
+| Classic UI | Volto |
+|---|---|
+| ![Disk usage page in Classic UI](docs/docs/_static/screenshots/classic-disk-usage.png) | ![Disk usage page in Volto](docs/docs/_static/screenshots/volto-disk-usage.png) |
+
+### Delete several items at once 🗑️
+
+Select items on the disk usage page and delete them in one go. The confirmation lists what gets deleted and its size, and shows Plone's link-integrity warning when other content links to an item. Afterwards a message reports how much space was freed.
+
+Deleting always works, even over the hard limit, so editors can clean up. Items the user may not delete, or that someone else has locked, are skipped and reported.
+
+| Classic UI | Volto |
+|---|---|
+| ![Delete confirmation with link-integrity warning in Classic UI](docs/docs/_static/screenshots/classic-delete-confirm.png) | ![Delete confirmation with link-integrity warning in Volto](docs/docs/_static/screenshots/volto-delete-confirm.png) |
+
+### Warning banner 🔔
+
+Once usage reaches the soft limit, editors see a yellow banner on every page, with a link to the disk usage page.
+
+| Classic UI | Volto |
+|---|---|
+| ![Warning banner at the soft limit in Classic UI](docs/docs/_static/screenshots/classic-banner-warning.png) | ![Warning banner at the soft limit in Volto](docs/docs/_static/screenshots/volto-banner-warning.png) |
+
+At the hard limit the banner turns red and says what the policy now blocks.
+
+| Classic UI | Volto |
+|---|---|
+| ![Banner at the hard limit in Classic UI](docs/docs/_static/screenshots/classic-banner-exceeded.png) | ![Banner at the hard limit in Volto](docs/docs/_static/screenshots/volto-banner-exceeded.png) |
+
+The banner is left out of the disk usage page and the control panel, which show the numbers anyway. With no limits configured, there is no banner at all.
+
+### Hard limit enforcement 🚦
+
+A save that would push usage above the hard limit follows the configured policy:
+
+| Policy | New items without files | Uploads that add bytes | Replacing with a smaller file |
+|---|---|---|---|
+| `block_all` (default) | refused | refused | allowed |
+| `block_files` | allowed | refused | allowed |
+| `limit_file_size` | allowed | allowed up to the maximum file size | allowed |
+| `allow` | allowed | allowed (warnings only) | allowed |
+
+An upload that still fits under the hard limit is always allowed. Add and edit forms show the reason on the file field, and REST clients get `400 Bad Request` with the same message.
+
+| Classic UI | Volto |
+|---|---|
+| ![Upload refused over the hard limit in Classic UI](docs/docs/_static/screenshots/classic-upload-refused.png) | ![Upload refused over the hard limit in Volto](docs/docs/_static/screenshots/volto-upload-refused.png) |
+
+A transaction guard also cancels every other change that would cross the limit, such as copy and paste, scripts, imports and other add-ons, so the limit cannot be bypassed. See [Limits and policies](docs/docs/concepts/limits-and-policies.md) and [Run imports over quota](docs/docs/how-to-guides/run-imports-over-quota.md).
+
+### Quota control panel ⚙️
+
+Site administrators set the soft limit, the hard limit, the policy and the maximum file size in **Site Setup → Add-on Configuration → Quota**. The panel also shows:
+
+- the current usage,
+- where each value comes from: the control panel, an environment variable or the built-in default,
+- **Rebuild usage data**, to recompute the sizes,
+- **Reset to defaults**, to clear the values saved in the panel.
+
+| Classic UI | Volto |
+|---|---|
+| ![Quota control panel in Classic UI](docs/docs/_static/screenshots/classic-controlpanel.png) | ![Quota control panel in Volto](docs/docs/_static/screenshots/volto-controlpanel.png) |
+
+### Environment variables and locked settings 🔒
+
+Every setting can also come from a `COLLECTIVE_QUOTA_*` environment variable of the Zope process. By default these act as defaults that the control panel can override.
+
+With `COLLECTIVE_QUOTA_LOCK_SETTINGS` on, the variables that are set become fixed: the control panel shows them as locked and neither the form nor the REST API can change them. This suits hosting setups where the server operator decides the quota.
+
+```shell
+COLLECTIVE_QUOTA_HARD_LIMIT_MB=15 \
+COLLECTIVE_QUOTA_OVER_LIMIT_POLICY=block_all \
+COLLECTIVE_QUOTA_LOCK_SETTINGS=1 \
+make backend-start
+```
+
+| Classic UI | Volto |
+|---|---|
+| ![Control panel with settings locked by the environment in Classic UI](docs/docs/_static/screenshots/classic-controlpanel-locked.png) | ![Control panel with settings locked by the environment in Volto](docs/docs/_static/screenshots/volto-controlpanel-locked.png) |
+
+See [Environment variables](docs/docs/reference/environment-variables.md) for the full list.
+
+### Permissions 🔐
+
+| Permission | Default roles | Grants |
+|---|---|---|
+| `collective.quota: Manage Quota Settings` | Manager, Site Administrator | Control panel, "Rebuild usage data" |
+| `collective.quota: View Disk Usage` | Manager, Site Administrator, Editor, Contributor, Reviewer | Disk usage page, warning banner, user-menu entry |
+
+Deleting from the disk usage page also needs Plone's `Delete objects` permission on each item.
+
+### REST API 🔌
+
+The Volto add-on uses these endpoints, and so can any other REST client:
+
+| Endpoint | Returns |
+|---|---|
+| `GET @quota-usage?limit=25` | The usage summary and the biggest items |
+| `POST @quota-rebuild` | Rebuilds the usage data and returns the new total |
+| `?expand=quota` on any content | The usage summary in `@components.quota` |
+| `@controlpanels/collective-quota` | The settings, where each comes from, and which are locked |
+
+See the [REST API reference](docs/docs/reference/rest-api.md).
+
+### And also 🌐
+
+- English and Spanish translations in both halves.
+- Uninstalling the backend add-on removes its index, settings and screens. The Volto add-on then hides its menu entry and banner, and its page says that the backend add-on is missing.
+
+See [backend/README.md](backend/README.md), [frontend/README.md](frontend/README.md) and [docs/](docs/) for the full documentation.
 
 ## Quick Start 🏁
 
