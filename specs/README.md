@@ -1,6 +1,6 @@
 # collective.quota — Specification
 
-Last updated: 2026-10-16
+Last updated: 2026-11-27
 
 `collective.quota` is a Plone add-on that measures the disk space used by uploaded
 files and images, lets site administrators configure a soft limit (warnings) and a
@@ -9,8 +9,8 @@ them a view to find and delete the biggest items.
 
 This folder is the single source of truth for *what* gets built and *in which order*.
 Code lives in `backend/` (Python, Plone 6.2) and `frontend/` (Volto 19 add-on).
-Phases 1–8 (backend, Classic UI and REST API) are done. Phase 9 adds the Volto
-add-on. The backend package works on its own; the Volto add-on needs the backend
+Phases 1–9 are done: backend, Classic UI and REST API (1–8) and the Volto add-on
+(9). The backend package works on its own; the Volto add-on needs the backend
 add-on installed, and neither one changes how the other behaves (`00-architecture.md`
 §1.1 fixes the rules).
 
@@ -48,7 +48,7 @@ add-on installed, and neither one changes how the other behaves (`00-architectur
 | 6 | [phase-06-warning-viewlet.md](phase-06-warning-viewlet.md) | Soft/hard limit warning viewlet for editors | Done | 2, 3, 5 |
 | 7 | [phase-07-release-readiness.md](phase-07-release-readiness.md) | Uninstall, upgrade scaffolding, i18n, docs, changelog, manual QA | Done | 1–6 |
 | 8 | [phase-08-rest-api.md](phase-08-rest-api.md) | REST API for Volto: `@quota-usage`, `@quota-rebuild`, `quota` expansion, shared listing, `acceptance` extra | Done | 1–7 |
-| 9 | [phase-09-volto-addon.md](phase-09-volto-addon.md) | Volto add-on: user-menu entry, banner, disk usage page with delete, control panel, i18n, Cypress | In progress | 8 |
+| 9 | [phase-09-volto-addon.md](phase-09-volto-addon.md) | Volto add-on: user-menu entry, banner, disk usage page with delete, control panel, i18n, Cypress | Done | 8 |
 
 Phases 5 and 6 can be developed in parallel once 2 and 3 are done. Phase 9's components
 can be built against the JSON documented in phase 8 while phase 8 is in progress, but

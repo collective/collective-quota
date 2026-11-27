@@ -1,8 +1,8 @@
 # Phase 9 — Volto add-on (`volto-collective-quota`)
 
-Status: In progress (code, unit and Cypress tests done; manual QA and release checklist open)
+Status: Done (publishing the release is left to the maintainers)
 Depends on: Phase 8 (services and expander; the JSON in that file is the contract)
-Last updated: 2026-10-16
+Last updated: 2026-11-27
 
 ## Goal
 
@@ -349,7 +349,7 @@ failure.
 
 - [ ] `frontend/packages/volto-collective-quota/package.json` version `1.0.0-alpha.0` → release-it alpha
 - [x] `make lint`, `make test`, `make i18n` clean in `frontend/`
-- [ ] Storybook builds (cookieplone deploys it to GitHub Pages)
+- [x] Storybook builds (cookieplone deploys it to GitHub Pages; the CI job is green)
 - [ ] Tag + publish to npm — maintainers
 
 ## Files
@@ -390,9 +390,11 @@ Modify:
 - [x] vitest coverage threshold (90 % lines) configured and passing
 - [x] i18n extracted; `en` and `es` translated
 - [x] Cypress suite green locally against the acceptance backend
-- [x] CI acceptance job (written, native backend, no Docker image; first run on GitHub pending)
+- [x] CI acceptance job (native backend, no Docker image; green on GitHub)
 - [x] README, docs how-to, news fragment
-- [ ] Manual QA (below) on a local development stack
+- [x] Manual QA (below) on a local development stack (2026-11-27: all nine steps pass,
+  driven in a headless browser; step 9 uninstalled and reinstalled through the
+  `@addons` service instead of the Classic Add-ons panel)
 
 ## Manual QA (Volto)
 
@@ -404,10 +406,10 @@ sent through Volto's proxy makes the backend see a different user than Volto sho
 
 1. Anonymous: home page has no banner; `/quota-usage` redirects to login; the toolbar is absent.
 2. Login as editor: user menu shows "Disk usage"; page lists the example content (2 Files, 1 Image) with sizes; limit buttons work.
-3. Site Setup as admin: "Quota" appears under "Add-on Configuration"; set soft 2 MB, hard 3 MB, `block_all`; usage segment updates; "Rebuild usage data" toasts the count.
+3. Site Setup as admin: "Quota" appears under "Add-on Configuration"; set soft 3 MB, hard 5 MB, `block_all` (the example content already uses 2.5 MB); usage segment updates; "Rebuild usage data" toasts the count.
 4. Upload a 1.5 MB File as editor: yellow banner on every page except `/quota-usage` and the control panel; not visible after logout.
-5. Upload until > 3 MB: red banner; adding a Page fails with the backend's message in Volto's form error toast; a smaller replacement upload on an existing File succeeds.
-6. `/quota-usage`: select the File linked from the example Document and one more → modal lists the breach → confirm → toast with freed size → banner turns yellow/green.
+5. Upload another 1.5 MB File: refused, with the backend's message under the file field (`block_all` never lets an upload cross the hard limit). As admin lower the limits to soft 2 MB, hard 3 MB: red banner; adding a Page fails with the backend's message in Volto's form error toast; a smaller replacement upload on an existing File succeeds.
+6. `/quota-usage`: select the File linked from the example Document and one more → modal lists the breach → confirm → toast with freed size → the banner turns yellow or goes away.
 7. Environment lock: restart the backend with `COLLECTIVE_QUOTA_HARD_LIMIT_MB=50` and `COLLECTIVE_QUOTA_LOCK_SETTINGS=1` → control panel shows the hard limit disabled with the lock note; saving other fields still works; "Reset to defaults" clears the other three fields and leaves the hard limit at 50 (locked).
 8. Clear all limits: no banner anywhere; page shows the "No limits" note; uploads unrestricted.
 9. Uninstall the backend add-on (Classic Add-ons): Volto shows no menu entry, no banner; `/quota-usage` shows the "not installed" message; reinstall → everything is back.
