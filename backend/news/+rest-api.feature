@@ -1,1 +1,0 @@
-Add the REST API for Volto: `GET @quota-usage` (usage summary and biggest items), `POST @quota-rebuild`, and the `quota` expansion element (`?expand=quota`). `plone.volto` is only an `acceptance` extra for the Volto acceptance server.
